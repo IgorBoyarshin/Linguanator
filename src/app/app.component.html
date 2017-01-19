@@ -1,0 +1,23 @@
+<div class="wrapper app">
+    <div class="wrapper app-without-footer">
+        <header>
+            <p>LINGUANATOR</p>
+        </header>
+
+        <section class="main horizontal">
+            <nav class="vertical">
+                <a routerLink="/testing" routerLinkActive="active">Testing</a>
+                <a routerLink="/database" routerLinkActive="active">Database</a>
+                <a routerLink="/settings" routerLinkActive="active">Settings</a>
+            </nav>
+
+            <router-outlet></router-outlet>
+        </section>
+    </div>
+
+    <footer>
+        <p>Made by Igor Boiarshyn</p>
+        <p>Copyright WhateverYouWannaCallIt. Powered by Brain © 2017</p>
+    </footer>
+
+</div>

@@ -1,0 +1,252 @@
+/*
+
+    COLORS
+
+    check: #eee && white
+*/
+
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+li {
+    list-style: none;
+}
+a {
+    text-decoration: none;
+}
+html {
+    background-color: white;
+    height: 100%;
+
+    font-size: 1em;
+    font-family: Calibri;
+}
+body {
+    height: 100%;
+}
+
+
+.primary-text-light {
+    font-size: 1.1rem;
+    color: white;
+}
+.primary-text-dark {
+    font-size: 1.1rem;
+    color: black;
+}
+.secondary-text-1 {
+    font-size: 1.1rem;
+    color: rgba(80, 80, 80, 0.5);
+}
+.secondary-text-2 {
+    font-size: 1.1rem;
+    color: rgba(80, 80, 80, 0.3);
+}
+
+
+.button {
+    outline: none;
+    font-family: Calibri;
+    font-size: 1.2rem;
+    font-weight: bold;
+
+    color: #fff;
+    background-color: #7c3;
+    padding: 0.9rem 1rem 0.9rem 1rem;
+    border:none;
+    border-radius: 1em;
+
+    box-shadow: 0.15em 0.15em 0.4em #111;
+}
+.button:active {
+    transform: translate(0.1em, 0.1em);
+    box-shadow: 0.15em 0.15em 0.6em #111 inset;
+}
+.button:hover {
+    background-color: #7E3;
+}
+.button:disabled {
+    background-color: #A5A5A5;
+}
+
+
+/* Flex */
+.horizontal {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+}
+.vertical {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+
+/* Sticky footer */
+/* ============================================ */
+linguanator-app {
+    height: 100%;
+}
+.wrapper.app {
+    height: 100%;
+}
+.app-without-footer {
+    min-height: 100%;
+    margin-bottom: -5rem;
+}
+.app-without-footer:after {
+    content: "";
+    display: block;
+}
+footer, .app-without-footer:after {
+    height: 5rem;
+}
+
+
+
+/* GENERAL */
+/* ============================================ */
+header {
+    background-color: #f82;
+    font-weight: bold;
+    font-size: 2.1rem;
+    text-align: center;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    color: black;
+
+    letter-spacing: 1.5rem;
+}
+section.main {
+    background-color: #eee;
+}
+section.main > *:last-child {
+    flex-grow: 1;
+}
+footer {
+    background-color: #aaf;
+}
+nav {
+    background-color: white;
+}
+nav a {
+    background-color: #fb2;
+    color: black;
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+}
+nav a:hover {
+    background-color: #c82;
+}
+nav a.active {
+    background-color: white;
+}
+
+
+
+/* TESTING */
+/* ============================================ */
+.testing.wrapper {
+    width: 100%;
+}
+.testing section {
+    background: #88f;
+    /*margin-bottom: 0.15rem;*/
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+section#boxes-container {
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+.box {
+    flex-grow: 1;
+    background: #c66;
+    min-width: 15rem;
+    max-width: 25rem;
+    height: 7rem;
+    margin: 1rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    font-weight: bold;
+}
+.box:first-child {
+    background: #ccc;
+    border: 2px solid #ccc;
+}
+.box:last-child {
+    background: #eee;
+    border: 2px solid #eee;
+}
+.box#user-answer {
+    resize: none;
+    outline: none;
+}
+.box#user-answer:focus {
+    border: 2px solid red;
+}
+#word-score {
+    float: right;
+}
+#result-panel > div {
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 1rem;
+    /*padding-top: 1rem;
+    padding-bottom: 1rem;*/
+    margin: auto;
+    max-width: 54rem; /* 25*2 + 4*(margin) */
+
+    /*margin-bottom: 0.15rem;
+    margin-top: 0.15rem;*/
+    border: 1px solid #eee;
+    border-width: 0.15rem 0rem 0rem 0rem;
+
+    background: #55f;
+}
+#result-panel > div > div {
+    margin-right: 1rem;
+}
+#flush-counter-panel > div {
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 1rem;
+    /*padding-top: 1rem;
+    padding-bottom: 1rem;*/
+    margin: auto;
+    max-width: 54rem;
+
+    border: 1px solid #eee;
+    border-width: 0.15rem 0rem 0rem 0rem;
+}
+#flush-counter-panel > div > div {
+    font-weight: bold;
+    margin-right: 1rem;
+}
+
+
+
+/* DATABASE */
+/* ============================================ */
+
+
+
+
+
+/* SETTINGS */
+/* ============================================ */
+
+

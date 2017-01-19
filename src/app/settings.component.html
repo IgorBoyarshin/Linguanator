@@ -1,0 +1,26 @@
+<div class="wrapper settings vertical">
+
+    <section id="languages">
+        <h2>LANGUAGES</h2>
+
+        <h3>Registered languages</h3>
+        <ul>
+            <li *ngFor="let language of registeredLanguages">
+                {{language.name}} :: {{language.label}}
+            </li>
+        </ul>
+
+        <br/>
+        <br/>
+
+        <h2>WORDS</h2>
+
+        <h3>All tags</h3>
+        <ul>
+            <li *ngFor="let tag of allTags">
+                {{tag}}
+            </li>
+        </ul>
+    </section>
+
+</div>
