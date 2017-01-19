@@ -1,6 +1,6 @@
 export class Word {
-    id: number;
-    w: string;
-    score: number;
-    t: string[];
+    id: number; // Id
+    w: string; // Word
+    s: number; // Score
+    t: string[]; // Tags
 }

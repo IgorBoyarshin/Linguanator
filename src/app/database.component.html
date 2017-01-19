@@ -1,11 +1,54 @@
-<h1>Words from the database</h1>
+<div class="wrapper database vertical" (click)="resetDropDowns()">
 
-<!-- <p>{{this.databaseService.wordsOfLanguages}}</p> -->
+    <section class="horizontal" id="choose-language-panel">
+        <div class="dropdown" id="dropdown-language-from">
+            <a href="javascript:void(0)" class="dropdown-button" 
+                (click)="toggleDropdown($event, 'from')" [class]="">{{languageFrom}}</a>
+            <div class="dropdown-content" *ngIf="isOpenFrom">
+                <a href="javascript:void(0)" *ngFor="let language of allLanguages" 
+                    (click)="selectLanguage('from', language)">{{language.name}}</a>
+            </div>
+        </div>
 
-<ul>
-    <li *ngFor="let word of words">
-        {{word.w}}
-    </li>
-</ul>
+        <button class="button button-big yellow" (click)="swapLanguages()"><==></button>
 
-<!-- <button (click)="save()">Save</button> -->
+        <div class="dropdown" id="dropdown-language-to" >
+            <a href="javascript:void(0)" class="dropdown-button" 
+                (click)="toggleDropdown($event, 'to')">{{languageTo}}</a>
+            <div class="dropdown-content" *ngIf="isOpenTo">
+                <a href="javascript:void(0)" *ngFor="let language of allLanguages" 
+                    (click)="selectLanguage('to', language)">{{language.name}}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="" id="words-table">        
+        <table id="words-table">
+
+            <tr>
+                <th colspan="6">Total: {{words.length}}</th>
+            </tr>
+            <tr>
+                <th>Word</th>
+                <th>Translations</th>
+                <th>Score</th>
+                <th>Tags</th>
+                <th>@E</th> 
+                <th>@D</th> 
+            </tr>
+            <tr *ngFor="let word of words; let wordIndex = index">
+                <td><a href="">{{word.w}}</a></td>
+                <td><span *ngFor="let translation of translations[wordIndex]"><a href="">{{translation.w}}</a>; </span></td>
+                <td>{{word.s}}</td>
+                
+                <!--MB change to an array as with translations-->
+                <td>{{word.t.join("; ")}}</td>
+
+                <td><button (click)="editWord(word)" class="button button-small yellow">Edit</button></td>
+                <td><button (click)="removeWord(word)" class="button button-small red">Del</button></td>
+            </tr>
+            
+        </table>
+    </section>
+
+</div>

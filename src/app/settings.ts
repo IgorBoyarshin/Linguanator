@@ -1,7 +1,9 @@
+import { Language } from './language';
+
 export class Settings {
     languages: {
         registeredLanguages: Language[];
-        lastUsedId: number;
+        // lastUsedId: number;
     };
 
     // toJSON(): string {
@@ -10,17 +12,5 @@ export class Settings {
     //
     // static fromJSON(json: any): Settings {
     //     return (json as Settings);
-    // }
-}
-
-export class Language {
-    id: number;
-    name: string;
-    label: string;
-
-    // constructor (id: number, name: string, label: string) {
-    //     this.id = id;
-    //     this.name = name;
-    //     this.label = label;
     // }
 }

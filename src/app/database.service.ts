@@ -2,16 +2,13 @@ import { Injectable } from '@angular/core';
 import { Headers, Http, RequestOptions } from '@angular/http';
 // import {Http, Response, Headers, RequestOptions} from "@angular/http";
 
-import { Settings, Language } from './settings';
+import { Settings } from './settings';
+import { Language } from './language';
+import { Connection } from './connection';
 import { Word } from './word';
 import { WordsOfLanguage } from './words-of-language';
 
 import 'rxjs/add/operator/toPromise';
-
-class Connection {
-    from: number;
-    to: number[];
-}
 
 @Injectable()
 export class DatabaseService {
@@ -41,7 +38,7 @@ export class DatabaseService {
         if (!this.initPromise) { // not null => has been initiated
             this.initPromise = Promise.all([
                     this.loadFromFile(this.connectionsUrl)
-                        .then(json => this.connections = (json as Connection[][][])),
+                        .then(json => this.connections = (json.langFromTo as Connection[][][])),
                     this.loadFromFile(this.settingsUrl)
                         .then(json => this.settings = (json as Settings)) // Now settings is ready
                         .then(() => { // Fill the languageUrls[] using settings' data
@@ -79,6 +76,27 @@ export class DatabaseService {
                         .then(response => response.json())
                         .catch(this.handleError);
     }
+
+    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+
+    getLanguageIndexByLabel(label: string):number {        
+        return this.settings.languages.registeredLanguages            
+            .findIndex(language => language.label == label);
+    }
+
+    getLanguageIndexByName(name: string):number {        
+        return this.settings.languages.registeredLanguages            
+            .findIndex(language => language.name == name);        
+    }
+
+    getLanguage(index: number):Language {               
+        return this.settings.languages.registeredLanguages[index];
+    }
+
+
+
 
     // getWordsOfLanguage(languageLabel: string): Word[] {
     //

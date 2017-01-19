@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { DatabaseService } from './database.service';
-import { Language } from './settings';
+import { Language } from './language';
 
 @Component({
     selector: 'settings',

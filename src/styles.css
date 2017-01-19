@@ -47,30 +47,64 @@ body {
 }
 
 
-.button {
-    outline: none;
-    font-family: Calibri;
-    font-size: 1.2rem;
-    font-weight: bold;
 
-    color: #fff;
-    background-color: #7c3;
-    padding: 0.9rem 1rem 0.9rem 1rem;
-    border:none;
-    border-radius: 1em;
-
-    box-shadow: 0.15em 0.15em 0.4em #111;
+.button-big:active {
+    transform: translate(0.1rem, 0.1rem);
+    box-shadow: 0.15rem 0.15rem 0.6rem #111 inset;
 }
-.button:active {
-    transform: translate(0.1em, 0.1em);
-    box-shadow: 0.15em 0.15em 0.6em #111 inset;
-}
-.button:hover {
-    background-color: #7E3;
-}
-.button:disabled {
+.button-big:disabled {
     background-color: #A5A5A5;
 }
+
+
+.green {
+    background-color: #7C3;
+    color: #FFF;
+}
+.yellow {
+    background-color: #EE2;
+    color: #111;
+}
+.red {
+    background-color: #D21;
+    color: #FFF;
+}
+.button.green:hover {
+    background-color: #7E3;
+}
+.button.yellow:hover {
+    background-color: #FF4;
+}
+.button.red:hover {
+    background-color: #E32;
+}
+.button {
+    outline: none;
+    font-family: Calibri;    
+    font-weight: bold;    
+    border:none;    
+}
+.button-small {
+    font-size: 1.0rem;
+    padding: 0.3rem 0.6rem 0.3rem 0.6rem;
+    border-radius: 0.6rem;
+    box-shadow: 0.08rem 0.08rem 0.4rem #111;
+}
+.button-big {
+    font-size: 1.2rem;
+    padding: 0.9rem 1rem 0.9rem 1rem;
+    border-radius: 1rem;
+    box-shadow: 0.15rem 0.15rem 0.4rem #111;
+}
+.button-small:active {
+    transform: translate(0.05rem, 0.05rem);
+    box-shadow: 0.05rem 0.05rem 0.6rem #111 inset;
+}
+.button-big:active {
+    transform: translate(0.1rem, 0.1rem);
+    box-shadow: 0.15rem 0.15rem 0.6rem #111 inset;
+}
+
 
 
 /* Flex */
@@ -153,7 +187,7 @@ nav a.active {
 
 /* TESTING */
 /* ============================================ */
-.testing.wrapper {
+.wrapper.testing {
     width: 100%;
 }
 .testing section {
@@ -241,6 +275,38 @@ section#boxes-container {
 
 /* DATABASE */
 /* ============================================ */
+.wrapper.database {
+
+}
+table#words-table th {
+    padding: 0.0rem 0.5rem 0.0rem 0.5rem;
+}
+
+.dropdown {
+    background: #aaa;
+    display: inline-block;
+    /*overflow: hidden;*/
+}
+.dropdown > a {
+    /*padding: 2rem;*/
+}
+.dropdown > a, .dropdown-button {
+    display: inline-block;
+    text-align: center;
+    padding: 2rem;
+}
+.dropdown-content {
+    display: block;
+    position: absolute;
+    background: #777;    
+
+}
+.dropdown-content a {
+    color: #fff;
+    padding: 1rem;
+    display: block;
+    text-align: left;
+}
 
 
 
