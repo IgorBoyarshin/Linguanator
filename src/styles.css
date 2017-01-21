@@ -47,16 +47,6 @@ body {
 }
 
 
-
-.button-big:active {
-    transform: translate(0.1rem, 0.1rem);
-    box-shadow: 0.15rem 0.15rem 0.6rem #111 inset;
-}
-.button-big:disabled {
-    background-color: #A5A5A5;
-}
-
-
 .green {
     background-color: #7C3;
     color: #FFF;
@@ -69,6 +59,7 @@ body {
     background-color: #D21;
     color: #FFF;
 }
+
 .button.green:hover {
     background-color: #7E3;
 }
@@ -84,6 +75,9 @@ body {
     font-weight: bold;    
     border:none;    
 }
+.button:disabled {
+    background-color: #A5A5A5;
+}
 .button-small {
     font-size: 1.0rem;
     padding: 0.3rem 0.6rem 0.3rem 0.6rem;
@@ -91,8 +85,8 @@ body {
     box-shadow: 0.08rem 0.08rem 0.4rem #111;
 }
 .button-big {
-    font-size: 1.2rem;
-    padding: 0.9rem 1rem 0.9rem 1rem;
+    font-size: 1.1rem;
+    padding: 0.8rem 1rem 0.8rem 1rem;
     border-radius: 1rem;
     box-shadow: 0.15rem 0.15rem 0.4rem #111;
 }
@@ -275,31 +269,33 @@ section#boxes-container {
 
 /* DATABASE */
 /* ============================================ */
-.wrapper.database {
 
+/*.wrapper.database {
+
+}*/
+.database > section {
+    margin-bottom: 1rem;
 }
-table#words-table th {
-    padding: 0.0rem 0.5rem 0.0rem 0.5rem;
+section#choose-language-panel > * {
+    margin-right: 1.5rem;
 }
 
 .dropdown {
     background: #aaa;
     display: inline-block;
-    /*overflow: hidden;*/
+    overflow: hidden;
 }
-.dropdown > a {
-    /*padding: 2rem;*/
-}
-.dropdown > a, .dropdown-button {
+.dropdown-button {
     display: inline-block;
     text-align: center;
-    padding: 2rem;
+    padding: 1.0rem;
+    min-width: 8rem;
 }
 .dropdown-content {
     display: block;
     position: absolute;
     background: #777;    
-
+    min-width: 8rem;    
 }
 .dropdown-content a {
     color: #fff;
@@ -308,6 +304,35 @@ table#words-table th {
     text-align: left;
 }
 
+section#process-word-panel {
+    padding: 0.8rem;
+    background: #ccc;    
+}
+section#process-word-panel > input {
+    margin-right: 1rem;
+    border-radius: 0.7rem;
+    padding: 0.3rem 0.4rem 0.3rem 0.4rem;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+table#words-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+table#words-table tr:nth-child(even) {
+    background: #ccc;
+}
+table#words-table tr:nth-child(1) {
+    background: #ccc;
+}
+table#words-table tr > * {
+    padding: 0.3rem;
+    font-size: 1.1rem;
+}
+table#words-table th {
+    font-size: 1.2rem;
+}
 
 
 

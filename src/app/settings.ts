@@ -6,6 +6,11 @@ export class Settings {
         // lastUsedId: number;
     };
 
+    tags: {
+        registeredTags: string[];
+        defaultTag: string;
+    };
+
     // toJSON(): string {
     //     return JSON.stringify(this);
     // }

@@ -1,9 +1,9 @@
-<div class="wrapper database vertical" (click)="resetDropDowns()">
+<div class="wrapper database vertical" (click)="resetDropdowns()">
 
-    <section class="horizontal" id="choose-language-panel">
+    <section class="horizontal primary-text-dark" id="choose-language-panel">
         <div class="dropdown" id="dropdown-language-from">
             <a href="javascript:void(0)" class="dropdown-button" 
-                (click)="toggleDropdown($event, 'from')" [class]="">{{languageFrom}}</a>
+                (click)="toggleDropdown($event, 'from')" [class]="">{{languageNameFrom}}</a>
             <div class="dropdown-content" *ngIf="isOpenFrom">
                 <a href="javascript:void(0)" *ngFor="let language of allLanguages" 
                     (click)="selectLanguage('from', language)">{{language.name}}</a>
@@ -14,15 +14,22 @@
 
         <div class="dropdown" id="dropdown-language-to" >
             <a href="javascript:void(0)" class="dropdown-button" 
-                (click)="toggleDropdown($event, 'to')">{{languageTo}}</a>
+                (click)="toggleDropdown($event, 'to')">{{languageNameTo}}</a>
             <div class="dropdown-content" *ngIf="isOpenTo">
                 <a href="javascript:void(0)" *ngFor="let language of allLanguages" 
                     (click)="selectLanguage('to', language)">{{language.name}}</a>
             </div>
         </div>
+    </section>    
+
+    <section class="horizontal" id="process-word-panel">
+        <input type="text" placeholder="Word" [(ngModel)]="inputWord"/>
+        <input type="text" placeholder="Translations" [(ngModel)]="inputTranslations">
+        <input type="text" placeholder="Tags" [(ngModel)]="inputTags">
+        <button class="button button-big green" (click)="submitWord()">Submit</button>
     </section>
 
-    <section class="" id="words-table">        
+    <section class="">        
         <table id="words-table">
 
             <tr>
@@ -50,5 +57,7 @@
             
         </table>
     </section>
+
+    <button (click)="showDB()">SHOW</button>
 
 </div>

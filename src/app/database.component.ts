@@ -14,18 +14,21 @@ export class DatabaseComponent implements OnInit {
 
     private db: DatabaseService;
 
-    private idLanguageFrom: number;
-    private idLanguageTo: number;
-    private languageFrom: string;
-    private languageTo: string;
+    private languageIndexFrom: number;
+    private languageIndexTo: number;
+    private languageNameFrom: string;
+    private languageNameTo: string;
     private allLanguages: Language[];
 
     private words: Word[] = [];
-    private translations: Word[][];
-    // private connections: Word[];
+    private translations: Word[][];    
 
     private isOpenFrom: boolean = false;
-    private isOpenTo: boolean = false;    
+    private isOpenTo: boolean = false; 
+
+    private inputWord: string;
+    private inputTranslations: string;
+    private inputTags: string;
 
     constructor(databaseService: DatabaseService) { 
         this.db = databaseService;
@@ -36,41 +39,121 @@ export class DatabaseComponent implements OnInit {
             .then(() => this.onDatabaseLoad());
     }
 
-    private onDatabaseLoad(): void {
+    private onDatabaseLoad(): void {              
         // Starting languages
-        this.idLanguageFrom = this.db.getLanguageIndexByLabel("ger"); // TODO: change
-        this.idLanguageTo = this.db.getLanguageIndexByLabel("eng"); // TODO: change        
+        this.languageIndexFrom = this.db.getLanguageIndexByLabel("ger"); // TODO: change
+        this.languageIndexTo = this.db.getLanguageIndexByLabel("eng"); // TODO: change        
         
         this.allLanguages = this.db.settings.languages.registeredLanguages;
 
-        this.loadContent();
+        this.loadContent();                 
     }
 
     private loadContent():void {
-        this.languageFrom = this.db.getLanguage(this.idLanguageFrom).name;
-        this.languageTo = this.db.getLanguage(this.idLanguageTo).name;        
+        this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
+        this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
-        const wordsTo = this.db.wordsOfLanguages[this.idLanguageTo].words;
-        this.translations = this.db.connections[this.idLanguageFrom][this.idLanguageTo]            
+        const wordsTo = this.db.wordsOfLanguages[this.languageIndexTo].words;
+
+        this.translations = this.db.connections[this.languageIndexFrom][this.languageIndexTo]            
             .map(connection => connection.to)
             .map(ids => ids
                 .map(id => wordsTo.find(word => word.id == id))
             );        
 
         // Words appear only if they have non-empty translation in that language
-        this.words = this.db.wordsOfLanguages[this.idLanguageFrom].words
+        this.words = this.db.wordsOfLanguages[this.languageIndexFrom].words
             .filter((value, index) => (this.translations[index]) ? this.translations[index].length > 0 : false);
     }
 
-    private editWord(word: Word): void {
-        
+
+
+    private showDB(): void {
+        console.log("");
+        console.log("<<>> WORDS GER <<>>");
+        console.log(this.db.wordsOfLanguages[0].words.map(word => "" + word.id + " : " + word.w));
+
+        console.log("");
+        console.log("<<>> WORDS ENG <<>>");
+        console.log(this.db.wordsOfLanguages[1].words.map(word => "" + word.id + " : " + word.w));
+
+        console.log("");
+        console.log("<<>> CONNECTIONS GER -> ENG <<>>");
+        console.log(this.db.connections[0][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+
+        console.log("");
+        console.log("<<>> CONNECTIONS ENG -> GER <<>>");
+        console.log(this.db.connections[1][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
     }
 
+
+    // Generates index
+    private generateWord(): number {
+        return 0;
+    }
+
+
+
+    // Called by the button
+    private editWord(word: Word): void {
+    
+    }
+
+    // Called by the button
     private removeWord(word: Word): void {
                 
     }
 
+    // Called by the button
+    private submitWord():void {
+        // TODO
+        // Assume everything is valid for now
+        
+        // this.db.addWord(this.idLanguageFrom, this.idLanguageTo, 
+        //     this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+
+        this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
+            "merkwurdig", ["strange", "odd"], ["tag1"]);
+    }    
+
+    private selectLanguage(source: string, language: Language):void {        
+        this.resetDropdowns();
+        
+        switch (source) {
+            case 'from':                
+                if (this.languageNameFrom != language.name) { // not the current language
+                    if (this.languageNameTo == language.name) {
+                        this.swapLanguages();
+                    } else {
+                        this.languageIndexFrom = this.db.getLanguageIndexByName(language.name);
+                        this.loadContent(); // reload
+                    }  
+                }
+                break;
+            case 'to':            
+                if (this.languageNameTo != language.name) { // not the current language
+                    if (this.languageNameFrom == language.name) {
+                        this.swapLanguages();
+                    } else {
+                        this.languageIndexTo = this.db.getLanguageIndexByName(language.name);
+                        this.loadContent(); // reload
+                    }                    
+                }
+                break;
+        }
+    }
+
+    private swapLanguages():void {        
+        const temp = this.languageIndexFrom;
+        this.languageIndexFrom = this.languageIndexTo;
+        this.languageIndexTo = temp;
+
+        this.loadContent();
+    }
+
     private toggleDropdown(event:any, source: string):void {        
+        // To prevent the click from getting to the resetDropDowns().
+        // Otherwise we couldn't open the dropdown
         event.stopPropagation();        
 
         switch (source) {
@@ -85,42 +168,8 @@ export class DatabaseComponent implements OnInit {
         }
     }
 
-    private selectLanguage(source: string, language: Language):void {        
-        this.resetDropDowns();
-        
-        switch (source) {
-            case 'from':                
-                if (this.languageFrom != language.name) { // not the current language
-                    if (this.languageTo == language.name) {
-                        this.swapLanguages();
-                    } else {
-                        this.idLanguageFrom = this.db.getLanguageIndexByName(language.name);
-                        this.loadContent(); // reload
-                    }  
-                }
-                break;
-            case 'to':            
-                if (this.languageTo != language.name) { // not the current language
-                    if (this.languageFrom == language.name) {
-                        this.swapLanguages();
-                    } else {
-                        this.idLanguageTo = this.db.getLanguageIndexByName(language.name);
-                        this.loadContent(); // reload
-                    }                    
-                }
-                break;
-        }
-    }
-
-    private swapLanguages():void {        
-        const temp = this.idLanguageFrom;
-        this.idLanguageFrom = this.idLanguageTo;
-        this.idLanguageTo = temp;
-
-        this.loadContent();
-    }
-
-    private resetDropDowns():void {        
+    // When the user clicks anywhere on the screen
+    private resetDropdowns():void {        
         if (this.isOpenFrom) {
             this.isOpenFrom = false;
         }
