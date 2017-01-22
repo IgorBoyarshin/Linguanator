@@ -62,13 +62,17 @@ export class DatabaseComponent implements OnInit {
             );        
 
         // Words appear only if they have non-empty translation in that language
+        // WRONG!!! has to work with ids, not indices
         this.words = this.db.wordsOfLanguages[this.languageIndexFrom].words
             .filter((value, index) => (this.translations[index]) ? this.translations[index].length > 0 : false);
+
+        this.translations = this.translations
+            .filter(translation => (translation) ? translation.length > 0 : false);
     }
 
 
 
-    private showDB(): void {
+    private showDB(): void {        
         console.log("");
         console.log("<<>> WORDS GER <<>>");
         console.log(this.db.wordsOfLanguages[0].words.map(word => "" + word.id + " : " + word.w));
@@ -101,7 +105,8 @@ export class DatabaseComponent implements OnInit {
 
     // Called by the button
     private removeWord(word: Word): void {
-                
+        console.log(">> Removed " + this.db.deleteWord(this.languageIndexFrom, this.languageIndexTo, 
+            this.db.getWordIndexById(this.languageIndexFrom, word.id)).w);
     }
 
     // Called by the button

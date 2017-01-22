@@ -212,7 +212,7 @@ export class DatabaseService {
                                 .splice(this.connections[languageIdTo][languageIdFrom][indexOfId].to.findIndex(id => id == wordId), 1);
 
                             // TODO: check if safe to do this
-                            this.removeWordIfItHasNoConnections(languageIdTo, idToRemoveConnectionFor);
+                            // this.removeWordIfItHasNoConnections(languageIdTo, idToRemoveConnectionFor);
                         }
                     });
 
@@ -266,32 +266,7 @@ export class DatabaseService {
     // If a word does not exist => its id == undefined
     private mapWordsNamesToIds(languageId: number, wordsNames: string[]): number[] {
         return wordsNames.map(wordName => this.wordsOfLanguages[languageId].words.find(word => word.w == wordName).id);        
-    }
-
-    // TODO: check
-    private removeWordIfItHasNoConnections(languageId: number, wordId: number): void {
-        const noConnectionsLeft: boolean = 
-            this.connections[languageId].every(languageConnections => {
-                const soughtConnection = languageConnections.find(connection => connection.from == wordId);
-
-                // Also, remove the connection entry if is has zero length
-                if (soughtConnection) {
-                    if (soughtConnection.to.length == 0) {
-                        languageConnections.splice(languageConnections.findIndex(connection => connection.from == wordId), 1);
-                    }                    
-                }
-
-                // Have to account for the fact that if there exists a word then it does not necessarily imply that
-                // there exists a connection for it in every language, so soughtConnection can == undefined
-                return soughtConnection ? (soughtConnection.to.length == 0) : true;
-            });
-
-        // Remove the word
-        if (noConnectionsLeft) {
-            const wordIndex: number = this.wordsOfLanguages[languageId].words.findIndex(word => word.id == wordId);
-            this.wordsOfLanguages[languageId].words.splice(wordIndex, 1);
-        }
-    }
+    }    
 
 
 
@@ -315,7 +290,7 @@ export class DatabaseService {
         return this.wordsOfLanguages[languageIndex].words.find(word => word.w == name);        
     }
 
-    getWordIndexById(languageIndex: number, id: number): number {
+    getWordIndexById(languageIndex: number, id: number): number {        
         return this.getIndexById(id, this.wordsOfLanguages[languageIndex].words);
     }
 
@@ -341,16 +316,23 @@ export class DatabaseService {
     // Removes the word entry and all connections to and from it for given language pair
     deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): Word {        
         const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
+        const connection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, wordId);
+        const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId);
 
         // Remove connection from translations[] to the word
-        this.getConnectionByFromId(languageIndexFrom, languageIndexTo, wordId)        
-            .to
-            .map(this.getWordIndexById)
-            .forEach(translationWordIndex => this.removeConnection(languageIndexFrom, languageIndexTo, translationWordIndex, wordIndex));
+        connection.to
+            // .map(id => this.getWordIndexById(languageIndexTo, id))
+            // .map(tr => {
+            //     console.log(this.wordsOfLanguages[languageIndexTo].words[tr].w);
+            //     return tr;
+            // })
+            .forEach(translationWordId => {
+                this.removeConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);                
+                this.removeWordIfNoConnectionsFrom(languageIndexTo, this.getWordIndexById(languageIndexTo, translationWordId));
+            });
 
         // Remove connection from the word to translations[]
-        this.removeConnectionEntry(this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId), 
-            this.connections[languageIndexFrom][languageIndexTo]);
+        this.removeConnectionEntry(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);
 
         // Remove the word itself
         return this.removeWordEntry(languageIndexFrom, wordIndex);
@@ -364,7 +346,7 @@ export class DatabaseService {
     // Returns true if the word got removed
     // Assumes connections are two-way: if a->b exists, then b->a has to be present as well
     // Also removes empty connection entry FROM this word
-    private removeWordIfNoConnections(languageIndex: number, wordIndex: number): boolean {
+    private removeWordIfNoConnectionsFrom(languageIndex: number, wordIndex: number): boolean {
         const wordId: number = this.wordsOfLanguages[languageIndex].words[wordIndex].id;
         const noConnections: boolean = 
             // For each language from the given language
@@ -375,6 +357,7 @@ export class DatabaseService {
 
         // Remove the word
         if (noConnections) {
+            console.log(">> Gonna remove " + this.wordsOfLanguages[languageIndex].words[wordIndex].w);
             this.removeWordEntry(languageIndex, wordIndex);
         }
 
@@ -396,13 +379,14 @@ export class DatabaseService {
     
     // Cleans the connection entry if it is empty after the removal
     private removeConnection(languageIndexFrom: number, languageIndexTo: number, 
-        wordIndexFrom: number, wordIndexTo: number): void {
+        wordIdFrom: number, wordIdTo: number): void {
 
-        const wordIdFrom: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndexFrom].id;
-        const wordIdTo: number = this.wordsOfLanguages[languageIndexTo].words[wordIndexTo].id;
+        // const wordIdFrom: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndexFrom].id;
+        // const wordIdTo: number = this.wordsOfLanguages[languageIndexTo].words[wordIndexTo].id;
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordIdFrom);        
         const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
         if (!connection) {
+            console.error(">> Could not find connection for " + wordIdFrom + " -> " + wordIdTo);
             return;
         }
 
@@ -410,10 +394,12 @@ export class DatabaseService {
         connection.to.splice(indexOfSoughtId, 1);
 
         this.removeConnectionEntryIfEmpty(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);
+        console.log(">> Remove normal normal ");
     }
 
-    // Remove the 'from and to[]' entry altogether
+    // Remove the 'from and to[]' entry altogether    
     private removeConnectionEntry(connectionIndex: number, array: Connection[]): void {
+        console.log(">> Remove eltogether");
         array.splice(connectionIndex, 1);
     }
 
@@ -423,6 +409,7 @@ export class DatabaseService {
 
         if (connection) {
             if (connection.to.length == 0) {
+                console.log(">> Remove empty");
                 this.removeConnectionEntry(connectionIndex, array);
                 return true;
             } else {
@@ -442,10 +429,37 @@ export class DatabaseService {
     
     // +=+=+=+=+=+=   GENERAL   +=+=+=+=+=+=
 
-    // TODO: Tries to guess, not do a bruteforce search
+    // Tries to guess, not do a bruteforce search
     // Assumes the ids are sorted
-    getIndexById(id: number, array: any[]): number {
-        return array.findIndex(element => element.id == id);
+    getIndexById(id: number, array: any[]): number {                
+        if (array.length < 10) {
+            return array.findIndex(element => element.id == id);
+        }
+        // Else
+
+        let index: number = id;
+        
+        // Step back if we're out of bounds
+        while (array[index] == undefined) {
+            index--;
+
+            if (index < 0) {
+                return -1;
+            }
+        }        
+
+        // Now we're inside the array for sure
+        // Just look for the sought id
+        while (array[index].id > id) {
+            index--;
+
+            if (index < 0) {
+                return -1;
+            }
+        }
+
+        // Could be < that sought id
+        return (array[index].id == id) ? index : -1;
     }
 
     // TODO: mb use getIndexById() if it prooves useful
