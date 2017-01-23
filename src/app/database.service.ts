@@ -77,200 +77,6 @@ export class DatabaseService {
                         .catch(this.handleError);
     }
 
-    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-    // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
-
-    
-    // Who calls: 
-    // - component when submitting a new word
-    // - db when ???
-    addWord(languageIdFrom: number, languageIdTo: number, 
-        wordName: string, translations: string[], tags: string[]): number {
-                
-        return this.submitWord(languageIdFrom, languageIdTo, wordName, translations, tags);
-
-        // const alreadyExists: boolean = this.wordsOfLanguages[languageIdFrom].words.findIndex(word => word.w == wordName) >= 0;        
-        // if (alreadyExists) {
-        //     return; // TODO: MB change 
-        // }
-
-        // // Adding the new word to the database
-        // const newId: number = this.wordsOfLanguages[languageIdFrom].lastUsedId++;
-        // const startingScore: number = 0.0;
-        // const newWord: Word = new Word(newId, wordName, startingScore, tags);
-        // this.wordsOfLanguages[languageIdFrom].words.push(newWord);
-
-    }
-
-    // Who calls:
-    // - component when submitting an edited word
-    editWord(languageIdFrom: number, languageIdTo: number, id: number,
-        wordName: string, translations: string[], tags: string[]): void {
-        
-
-    }
-
-
-    // Who calls:
-    // - db when processing translations
-    // return: id of the word
-    private submitWord(languageIdFrom: number, languageIdTo: number, 
-        wordName: string, translations: string[], tags: string[], joinInsteadOfReplace: boolean = false, 
-        depthLevel: number = 0): number {
-                
-        // console.log(" ".repeat(depthLevel * 3) + ">> Called for(" + depthLevel + "): " + wordName + "; with " + translations.join(", "));
-
-        const wordIndex: number = this.wordsOfLanguages[languageIdFrom].words.findIndex(word => word.w == wordName);
-        const alreadyExists = wordIndex >= 0;
-
-        if (depthLevel >= 2) {
-            // Then the word must exist and must be self-contained(nothing to change in it)            
-
-            if (!alreadyExists) {
-                console.error(">> WHY??????");
-                return undefined;
-            }
-
-            console.log(" ".repeat(depthLevel * 3) + ">> Called for(" + depthLevel + "): " 
-                    + wordName + "; with [" + translations.join(", ") + "]");
-            console.log(" ".repeat(depthLevel * 3) + ">> Returning(" + depthLevel + ") id for " + wordName);
-
-            return this.wordsOfLanguages[languageIdFrom].words[wordIndex].id;
-        }
-
-        
-        if (alreadyExists) { // then join || rewrite
-            // wordId and wordIndex exist and are valid for sure
-
-            const wordId: number = this.wordsOfLanguages[languageIdFrom].words[wordIndex].id;                    
-
-            if (joinInsteadOfReplace) { // join
-                console.log(" ".repeat(depthLevel * 3) + ">> Called for(" + depthLevel + "): " 
-                    + wordName + "; with [" + translations.join(", ") + "] with join");                
-
-                translations
-                    .map(translation => {
-                        // Will just return the id of the initial word, thus stopping the recursion
-                        const id = this.submitWord(languageIdTo, languageIdFrom, translation, [wordName], tags, true, depthLevel + 1);                        
-
-                        return id;
-                    })
-                    // Now add only those ids that are not there yet
-                    // (supposed to be just one for the initial word)
-                    .map(id => {
-                        const connectionIndex: number = 
-                            this.connections[languageIdFrom][languageIdTo].findIndex(connection => connection.from == wordId);
-
-                        if (!this.connections[languageIdFrom][languageIdTo][connectionIndex].to.includes(id)) {
-                            this.connections[languageIdFrom][languageIdTo][connectionIndex].to.push(id);
-                        }
-                    });
-
-                // if (!somethingChanged) {
-                //     return undefined; // TODO !!!
-                // }
-
-
-                // Tags              
-                // Tags are done after translations[] because if nothing changed then we've already exited up there
-                tags.map(tag => {
-                    if (!this.wordsOfLanguages[languageIdFrom].words[wordIndex].t.includes(tag)) {
-                        this.wordsOfLanguages[languageIdFrom].words[wordIndex].t.push(tag);
-                        // somethingChanged = true;
-                    }
-                });
-
-                // return wordId;
-
-            } else { // replace
-                console.log(" ".repeat(depthLevel * 3) + ">> Called for(" + depthLevel + "): " 
-                    + wordName + "; with [" + translations.join(", ") + "] with replace");
-                // let returnedUndefined: boolean = false;
-
-                const connectionIndex: number = 
-                            this.connections[languageIdFrom][languageIdTo].findIndex(connection => connection.from == wordId);
-                                
-                const newIds: number[] = translations
-                    .map(translation => {
-                        const id = this.submitWord(languageIdTo, languageIdFrom, translation, [wordName], tags, true, depthLevel + 1);
-                        // if (!id) { // not undefined
-                        //     somethingChanged = true;
-                        // }
-
-                        return id;
-                    });
-
-                // Need to remove all previous connections from the words of translations
-                this.connections[languageIdFrom][languageIdTo][connectionIndex].to
-                    .forEach(idToRemoveConnectionFor => {
-                        if (!newIds.includes(idToRemoveConnectionFor)) { // Then this id is no more => remove it
-                            const indexOfId: number = this.connections[languageIdTo][languageIdFrom]
-                                .findIndex(connection => connection.from == idToRemoveConnectionFor);
-                            
-                            this.connections[languageIdTo][languageIdFrom][indexOfId].to
-                                .splice(this.connections[languageIdTo][languageIdFrom][indexOfId].to.findIndex(id => id == wordId), 1);
-
-                            // TODO: check if safe to do this
-                            // this.removeWordIfItHasNoConnections(languageIdTo, idToRemoveConnectionFor);
-                        }
-                    });
-
-                this.connections[languageIdFrom][languageIdTo][connectionIndex].to = newIds;
-
-                                
-
-
-
-                this.wordsOfLanguages[languageIdFrom].words[wordIndex].t = tags;
-
-                // Valid id of the word we've finished processing 
-                // return wordId;
-
-            }
-
-            console.log(" ".repeat(depthLevel * 3) + ">> Returning(" + depthLevel + ") id for " + wordName);
-            console.log("");
-            return wordId;
-        } else { // then create new (add)
-            
-            // Adding the new word to the database
-            const newId: number = this.wordsOfLanguages[languageIdFrom].lastUsedId++;
-            const startingScore: number = 0.0;
-            const newWord: Word = new Word(newId, wordName, startingScore, tags);
-            this.wordsOfLanguages[languageIdFrom].words.push(newWord);
-
-
-            return this.submitWord(languageIdFrom, languageIdTo, wordName, translations, tags);
-        }
-
-        // return word
-    }
-
-    private isSubset(a: any[], b: any[], exact: boolean) {
-        if (exact) {
-            if (a.length != b.length) {
-                return false;
-            }
-        }
-        
-        a.forEach(value => {
-            if (!b.includes(value)) {
-                return false;
-            }
-        });
-
-        return true;
-    }
-
-    // If a word does not exist => its id == undefined
-    private mapWordsNamesToIds(languageId: number, wordsNames: string[]): number[] {
-        return wordsNames.map(wordName => this.wordsOfLanguages[languageId].words.find(word => word.w == wordName).id);        
-    }    
-
-
-
-
 
 
 
@@ -313,6 +119,18 @@ export class DatabaseService {
         return word.s;
     }
 
+    addWord(languageIdFrom: number, languageIdTo: number, 
+        wordName: string, translations: string[], tags: string[]): number {
+                
+        return this.submitWord(languageIdFrom, languageIdTo, wordName, translations, tags);
+    }
+    
+    editWord(languageIdFrom: number, languageIdTo: number, id: number,
+        newWordName: string, translations: string[], tags: string[]): void {
+        
+        
+    }
+
     // Removes the word entry and all connections to and from it for given language pair
     deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): Word {        
         const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
@@ -320,14 +138,9 @@ export class DatabaseService {
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId);
 
         // Remove connection from translations[] to the word
-        connection.to
-            // .map(id => this.getWordIndexById(languageIndexTo, id))
-            // .map(tr => {
-            //     console.log(this.wordsOfLanguages[languageIndexTo].words[tr].w);
-            //     return tr;
-            // })
+        connection.to            
             .forEach(translationWordId => {
-                this.removeConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);                
+                this.removeSingleConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);                
                 this.removeWordIfNoConnectionsFrom(languageIndexTo, this.getWordIndexById(languageIndexTo, translationWordId));
             });
 
@@ -336,6 +149,92 @@ export class DatabaseService {
 
         // Remove the word itself
         return this.removeWordEntry(languageIndexFrom, wordIndex);
+    }
+
+    // return: id of the word, undefined otherwise        
+    private submitWord(languageIndexFrom: number, languageIndexTo: number, 
+        wordName: string, translations: string[], tags: string[], 
+        joinInsteadOfReplace: boolean = false, depthLevel: number = 0): number {                    
+        
+        const wordIndex: number = this.getWordIndexByName(languageIndexFrom, wordName);
+        const wordAlreadyExists = wordIndex >= 0;
+
+        if (depthLevel >= 2) {
+            // Then the word must exist in the database            
+            // So just return its ID
+
+            // The word is supposed to be already processed(nothing to change)
+            // OR it will be handeled elsewhere immediately after
+
+            if (!wordAlreadyExists) {
+                console.error(">> WHY??????");
+                return undefined;
+            }            
+
+            return this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
+        }        
+
+        
+        if (wordAlreadyExists) { // then join || rewrite            
+            const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
+            let forwardConnection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, wordId);
+
+            // If the word doesn't have a connection for this pair of languages
+            if (!forwardConnection) {
+                const newLength: number = this.connections[languageIndexFrom][languageIndexTo].push(new Connection(wordId, []));
+                forwardConnection = this.connections[languageIndexFrom][languageIndexTo][newLength - 1];
+            }            
+
+            if (joinInsteadOfReplace) { // join
+
+                translations
+                    .map(translation =>
+                        this.submitWord(languageIndexTo, languageIndexFrom, translation, [wordName], tags, true, depthLevel + 1)
+                    )
+                    .forEach(translationId => this.addIfNotPresent(translationId, forwardConnection.to));
+
+                tags.forEach(tag => this.addIfNotPresent(tag, this.getWordById(languageIndexFrom, wordId).t));
+
+            } else { // replace                                                
+                                
+                // Add all translations to the database(if needed) and return their IDs
+                // It is here where we create new BACK CONNECTIONS t1->w, t2->w, ... to the given word
+                const newTranslationIds: number[] = translations
+                    .map(translation =>
+                        this.submitWord(languageIndexTo, languageIndexFrom, translation, [wordName], tags, true, depthLevel + 1)
+                    );
+
+                // Need to remove all previous(old) BACK CONNECTIONS from each translation of this word
+                forwardConnection.to
+                    .filter(id => !newTranslationIds.includes(id)) // Leave only old IDs - need to remove only them
+                    .forEach(wordIdToRemoveConnectionFor => {                        
+                        this.removeSingleConnection(languageIndexTo, languageIndexFrom, wordIdToRemoveConnectionFor, wordId);
+                        //The only connection left TO this word(from the given word) will be removed later
+                        this.removeWordIfNoConnectionsFrom(languageIndexTo, 
+                            this.getWordIndexById(languageIndexTo, wordIdToRemoveConnectionFor)); 
+                    });
+
+                // Now manage FORWARD CONNECTIONS w->t1, w->t2, ...
+                forwardConnection.to = newTranslationIds;
+
+                // Fill tags
+                this.wordsOfLanguages[languageIndexFrom].words[wordIndex].t = tags;
+            }
+
+            return wordId;
+
+        } else { // does not exist yet
+            // so create a new entry (add)
+            
+            // Adding the new word to the database
+            const newId: number = ++this.wordsOfLanguages[languageIndexFrom].lastUsedId;
+            const startingScore: number = 0.0;
+            const newWord: Word = new Word(newId, wordName, startingScore, tags);
+            this.wordsOfLanguages[languageIndexFrom].words.push(newWord);
+
+            // Now there exists the word entry in the database, so alreadyExists will == true
+            return this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags, joinInsteadOfReplace, depthLevel);
+        }
     }
 
     // Only removes the entry from the database. Does not do anything with connections
@@ -356,8 +255,7 @@ export class DatabaseService {
             });
 
         // Remove the word
-        if (noConnections) {
-            console.log(">> Gonna remove " + this.wordsOfLanguages[languageIndex].words[wordIndex].w);
+        if (noConnections) {            
             this.removeWordEntry(languageIndex, wordIndex);
         }
 
@@ -378,28 +276,26 @@ export class DatabaseService {
     }
     
     // Cleans the connection entry if it is empty after the removal
-    private removeConnection(languageIndexFrom: number, languageIndexTo: number, 
+    // Removes a single a->b connection
+    private removeSingleConnection(languageIndexFrom: number, languageIndexTo: number, 
         wordIdFrom: number, wordIdTo: number): void {
 
         // const wordIdFrom: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndexFrom].id;
         // const wordIdTo: number = this.wordsOfLanguages[languageIndexTo].words[wordIndexTo].id;
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordIdFrom);        
         const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
-        if (!connection) {
-            console.error(">> Could not find connection for " + wordIdFrom + " -> " + wordIdTo);
+        if (!connection) {            
             return;
         }
 
         const indexOfSoughtId: number = connection.to.indexOf(wordIdTo);            
         connection.to.splice(indexOfSoughtId, 1);
 
-        this.removeConnectionEntryIfEmpty(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);
-        console.log(">> Remove normal normal ");
+        this.removeConnectionEntryIfEmpty(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);        
     }
 
     // Remove the 'from and to[]' entry altogether    
-    private removeConnectionEntry(connectionIndex: number, array: Connection[]): void {
-        console.log(">> Remove eltogether");
+    private removeConnectionEntry(connectionIndex: number, array: Connection[]): void {        
         array.splice(connectionIndex, 1);
     }
 
@@ -408,8 +304,7 @@ export class DatabaseService {
         const connection: Connection = array[connectionIndex];
 
         if (connection) {
-            if (connection.to.length == 0) {
-                console.log(">> Remove empty");
+            if (connection.to.length == 0) {                
                 this.removeConnectionEntry(connectionIndex, array);
                 return true;
             } else {
@@ -466,6 +361,34 @@ export class DatabaseService {
     getById(id: number, array: any[]): any {
         return array.find(element => element.id == id);
     }
+
+    // Returns true if the value was not present before
+    addIfNotPresent(value: any, array: any[]): boolean {
+        if (!array.includes(value)) {
+            array.push(value);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // // NEEDED ???
+    // private isSubset(a: any[], b: any[], exact: boolean) {
+    //     if (exact) {
+    //         if (a.length != b.length) {
+    //             return false;
+    //         }
+    //     }
+        
+    //     a.forEach(value => {
+    //         if (!b.includes(value)) {
+    //             return false;
+    //         }
+    //     });
+
+    //     return true;
+    // }
     
 
     
@@ -492,13 +415,6 @@ export class DatabaseService {
     }
     
    
-
-
-
-
-
-
-
 
 
 

@@ -118,7 +118,7 @@ export class DatabaseComponent implements OnInit {
         //     this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
 
         this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-            "merkwurdig", ["strange", "odd"], ["tag1"]);
+            "newGerWord", ["tr1", "tr2"], ["tag1"]);
     }    
 
     private selectLanguage(source: string, language: Language):void {        
