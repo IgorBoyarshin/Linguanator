@@ -120,6 +120,10 @@ export class DatabaseComponent implements OnInit {
         console.log(this.db.connections[2][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
     }
 
+    private saveDB(): void {
+        this.db.saveProgress();
+    }
+
 
     // Generates index
     private generateWord(): number {

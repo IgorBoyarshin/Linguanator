@@ -12,12 +12,12 @@ import 'rxjs/add/operator/toPromise';
 
 @Injectable()
 export class DatabaseService {
-    private urlToDatabase = '../../database/';
+    private urlToDatabase = '../../database/';    
     private settingsFileName = 'settings';
     private connectionsFileName = 'connections';
     private settingsUrl = this.urlToDatabase + this.settingsFileName + '.json';
     private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
-    private languageFileNames : string[]; // can do without(be local)
+    // private languageFileNames : string[]; // can do without(be local)
     private languageUrls : string[];
 
     private headers = new Headers({'Content-Type': 'application/json'});
@@ -68,14 +68,7 @@ export class DatabaseService {
         }
 
         return this.initPromise;
-    }
-
-    private loadFromFile(url: string): Promise<any> {
-        return this.http.get(url)
-                        .toPromise()
-                        .then(response => response.json())
-                        .catch(this.handleError);
-    }
+    }    
 
 
 
@@ -429,22 +422,41 @@ export class DatabaseService {
     // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 
 
-    // saveToDatabase(words: string[]): Promise<string[]> {
-    //     const url = this.urlToDatabase + this.wordsFileName;
-    //     // const url = '${this.url}/${hero.id}';
-    //     return this.http
-    //         // .post('http://localhost:8089/database/wordsMy.json', JSON.stringify({"some": words}), {headers: this.headers})
-    //         .post(url, JSON.stringify({"some": words}), {headers: this.headers})
-    //         // .post('../../database/wordsNew.json', JSON.stringify(words), new RequestOptions({ headers: this.headers }))
-    //         .toPromise()
-    //         .then(() => words)
-    //         // .then(res => res.json())
-    //         .catch(this.handleError);
-    // }
-    //
+    saveProgress():void {
+        this.saveToDatabase();
+    }
+
+    private saveToDatabase(): Promise<string[]> {
+        return Promise.all([
+                this.saveToFile(this.settingsUrl, this.settings),                
+                this.saveToFile(this.connectionsUrl, {"langFromTo": this.connections}),                
+                Promise.all( 
+                    // List of urls => list of promises
+                    this.languageUrls.map((languageUrl, index) =>
+                        this.saveToFile(languageUrl, this.wordsOfLanguages[index])
+                    )
+                )
+            ])
+            .catch(this.handleError);
+    }
+
+    private loadFromFile(url: string): Promise<any> {
+        return this.http.get(url)
+                        .toPromise()
+                        .then(response => response.json())
+                        .catch(this.handleError);
+    }
+
+    private saveToFile(url: string, content: any): Promise<any> {
+        return this.http.post(url, JSON.stringify(content), {headers: this.headers})
+                        .toPromise()
+                        // .then()
+                        .catch(this.handleError);
+    }
+    
 
     private handleError(error: any): Promise<any> {
-        console.error('>> Error in service:', error);
+        console.error('>> Error in DatabaseService:', error);
         return Promise.reject(error.message || error);
     }
 }
