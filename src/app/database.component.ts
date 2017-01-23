@@ -53,21 +53,54 @@ export class DatabaseComponent implements OnInit {
         this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
         this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
+
         const wordsTo = this.db.wordsOfLanguages[this.languageIndexTo].words;
 
-        this.translations = this.db.connections[this.languageIndexFrom][this.languageIndexTo]            
-            .map(connection => connection.to)
-            .map(ids => ids
-                .map(id => wordsTo.find(word => word.id == id))
-            );        
+        // const allTranslations: Word[][] = this.db.connections[this.languageIndexFrom][this.languageIndexTo]
+        //     .map(connection => connection.to)
+        //     .map(ids => ids
+        //         .map(id => wordsTo.find(word => word.id == id))                
+        //     );      
 
-        // Words appear only if they have non-empty translation in that language
-        // WRONG!!! has to work with ids, not indices
-        this.words = this.db.wordsOfLanguages[this.languageIndexFrom].words
-            .filter((value, index) => (this.translations[index]) ? this.translations[index].length > 0 : false);
+        // console.log(wordsTo.map(word => word.w)); 
+        // console.log(allTranslations); 
 
-        this.translations = this.translations
-            .filter(translation => (translation) ? translation.length > 0 : false);
+        // Words appear only if they have non-empty translation in that language        
+        this.words = [];
+        this.translations = [];
+        let emptyWords: Word[] = [];
+        let emptyTranslations: Word[][] = [];
+        // const connections: Connection[] = this.db.connections[this.languageIndexFrom][this.languageIndexTo];
+        this.db.wordsOfLanguages[this.languageIndexFrom].words
+            .forEach((word, index) => {  
+                const connection: Connection = this.db.getConnectionByFromId(
+                        this.languageIndexFrom, this.languageIndexTo, word.id);
+
+                // Exists at all for this pair of langs, and is not empty
+                if (connection && connection.to.length > 0) {
+                    this.words.push(word);
+                    this.translations.push(connection.to.map(id => wordsTo.find(word => word.id == id)));
+                } else {
+                    emptyWords.push(word);
+                    
+                }
+
+                // if (allTranslations[index] && allTranslations[index].length > 0) {
+                //     this.words.push(word);
+                //     console.log("Pushing in " + word.w);
+                //     this.translations.push(allTranslations[index]);
+                // } else {
+                //     emptyWords.push(word);
+                //     console.log("Pushing out " + word.w);
+                //     emptyTranslations.push(allTranslations[index]);
+                // }                
+            });
+
+        emptyWords.forEach(word => this.words.push(word));
+        // emptyTranslations.forEach(translation => this.translations.push(translation));
+
+        // this.translations = this.translations
+        //     .filter(translation => (translation) ? translation.length > 0 : false);
     }
 
 
@@ -82,12 +115,32 @@ export class DatabaseComponent implements OnInit {
         console.log(this.db.wordsOfLanguages[1].words.map(word => "" + word.id + " : " + word.w));
 
         console.log("");
+        console.log("<<>> WORDS RUS <<>>");
+        console.log(this.db.wordsOfLanguages[2].words.map(word => "" + word.id + " : " + word.w));
+
+        console.log("");
         console.log("<<>> CONNECTIONS GER -> ENG <<>>");
-        console.log(this.db.connections[0][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+        console.log(this.db.connections[0][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));        
 
         console.log("");
         console.log("<<>> CONNECTIONS ENG -> GER <<>>");
-        console.log(this.db.connections[1][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+        console.log(this.db.connections[1][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));        
+
+        console.log("");
+        console.log("<<>> CONNECTIONS GER -> RUS <<>>");
+        console.log(this.db.connections[0][2].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+
+        console.log("");
+        console.log("<<>> CONNECTIONS RUS -> GER <<>>");
+        console.log(this.db.connections[2][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+
+        console.log("");
+        console.log("<<>> CONNECTIONS ENG -> RUS <<>>");
+        console.log(this.db.connections[1][2].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
+
+        console.log("");
+        console.log("<<>> CONNECTIONS RUS -> ENG <<>>");
+        console.log(this.db.connections[2][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
     }
 
 
@@ -101,12 +154,18 @@ export class DatabaseComponent implements OnInit {
     // Called by the button
     private editWord(word: Word): void {
     
+
+        this.loadContent();
     }
 
     // Called by the button
     private removeWord(word: Word): void {
-        console.log(">> Removed " + this.db.deleteWord(this.languageIndexFrom, this.languageIndexTo, 
-            this.db.getWordIndexById(this.languageIndexFrom, word.id)).w);
+        console.log(">> Removed " + word.w);
+        
+        this.db.deleteWord(this.languageIndexFrom, this.languageIndexTo, 
+            this.db.getWordIndexById(this.languageIndexFrom, word.id));        
+
+        this.loadContent();
     }
 
     // Called by the button
@@ -114,11 +173,17 @@ export class DatabaseComponent implements OnInit {
         // TODO
         // Assume everything is valid for now
         
-        // this.db.addWord(this.idLanguageFrom, this.idLanguageTo, 
-        //     this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
-
         this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-            "newGerWord", ["tr1", "tr2"], ["tag1"]);
+            this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+
+        this.inputWord = "";
+        this.inputTranslations = "";
+        this.inputTags = "";
+
+        this.loadContent();
+
+        // this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
+        //     "newGerWord", ["tr1", "tr2"], ["tag1"]);
     }    
 
     private selectLanguage(source: string, language: Language):void {        

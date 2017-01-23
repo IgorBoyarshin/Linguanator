@@ -131,11 +131,13 @@ export class DatabaseService {
         
     }
 
-    // Removes the word entry and all connections to and from it for given language pair
-    deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): Word {        
-        const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
-        const connection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, wordId);
+    // Removes the word entry and all connections to and from it FOR GIVEN LANGUAGE PAIR
+    // (so if the words exists elsewhere as well, equivalent to only removing connections for given lang pair)
+    // The words remains for other languages in the words database
+    deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): void {        
+        const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;        
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId);
+        const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
 
         // Remove connection from translations[] to the word
         connection.to            
@@ -147,8 +149,8 @@ export class DatabaseService {
         // Remove connection from the word to translations[]
         this.removeConnectionEntry(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);
 
-        // Remove the word itself
-        return this.removeWordEntry(languageIndexFrom, wordIndex);
+        // Remove the word itself if it is not needed in other langs
+        this.removeWordIfNoConnectionsFrom(languageIndexFrom, wordIndex);
     }
 
     // return: id of the word, undefined otherwise        
@@ -195,7 +197,7 @@ export class DatabaseService {
 
                 tags.forEach(tag => this.addIfNotPresent(tag, this.getWordById(languageIndexFrom, wordId).t));
 
-            } else { // replace                                                
+            } else { // replace
                                 
                 // Add all translations to the database(if needed) and return their IDs
                 // It is here where we create new BACK CONNECTIONS t1->w, t2->w, ... to the given word
@@ -255,7 +257,7 @@ export class DatabaseService {
             });
 
         // Remove the word
-        if (noConnections) {            
+        if (noConnections) {
             this.removeWordEntry(languageIndex, wordIndex);
         }
 
@@ -267,11 +269,11 @@ export class DatabaseService {
 
     // +=+=+=+=+=+=   CONNECTION   +=+=+=+=+=+=
 
-    private getConnectionByFromId(languageIndexFrom: number, languageIndexTo: number, fromId: number): Connection {
+    getConnectionByFromId(languageIndexFrom: number, languageIndexTo: number, fromId: number): Connection {
         return this.connections[languageIndexFrom][languageIndexTo].find(connection => connection.from == fromId);
     }
 
-    private getConnectionIndexByFromId(languageIndexFrom: number, languageIndexTo: number, fromId: number): number {
+    getConnectionIndexByFromId(languageIndexFrom: number, languageIndexTo: number, fromId: number): number {
         return this.connections[languageIndexFrom][languageIndexTo].findIndex(connection => connection.from == fromId);
     }
     
