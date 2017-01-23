@@ -119,16 +119,17 @@ export class DatabaseService {
         return word.s;
     }
 
-    addWord(languageIdFrom: number, languageIdTo: number, 
+    addWord(languageIndexFrom: number, languageIndexTo: number, 
         wordName: string, translations: string[], tags: string[]): number {
                 
-        return this.submitWord(languageIdFrom, languageIdTo, wordName, translations, tags);
+        return this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags);
     }
     
-    editWord(languageIdFrom: number, languageIdTo: number, id: number,
+    editWord(languageIndexFrom: number, languageIndexTo: number, wordId: number,
         newWordName: string, translations: string[], tags: string[]): void {
         
-        
+        this.getWordById(languageIndexFrom, wordId).w = newWordName;
+        this.submitWord(languageIndexFrom, languageIndexTo, newWordName, translations, tags);
     }
 
     // Removes the word entry and all connections to and from it FOR GIVEN LANGUAGE PAIR

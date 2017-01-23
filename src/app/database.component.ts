@@ -30,6 +30,8 @@ export class DatabaseComponent implements OnInit {
     private inputTranslations: string;
     private inputTags: string;
 
+    private idOfWordBeingEdited: number = undefined;
+
     constructor(databaseService: DatabaseService) { 
         this.db = databaseService;
     }
@@ -53,23 +55,12 @@ export class DatabaseComponent implements OnInit {
         this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
         this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
-
         const wordsTo = this.db.wordsOfLanguages[this.languageIndexTo].words;
-
-        // const allTranslations: Word[][] = this.db.connections[this.languageIndexFrom][this.languageIndexTo]
-        //     .map(connection => connection.to)
-        //     .map(ids => ids
-        //         .map(id => wordsTo.find(word => word.id == id))                
-        //     );      
-
-        // console.log(wordsTo.map(word => word.w)); 
-        // console.log(allTranslations); 
 
         // Words appear only if they have non-empty translation in that language        
         this.words = [];
         this.translations = [];
-        let emptyWords: Word[] = [];
-        let emptyTranslations: Word[][] = [];
+        let emptyWords: Word[] = [];        
         // const connections: Connection[] = this.db.connections[this.languageIndexFrom][this.languageIndexTo];
         this.db.wordsOfLanguages[this.languageIndexFrom].words
             .forEach((word, index) => {  
@@ -83,24 +74,10 @@ export class DatabaseComponent implements OnInit {
                 } else {
                     emptyWords.push(word);
                     
-                }
-
-                // if (allTranslations[index] && allTranslations[index].length > 0) {
-                //     this.words.push(word);
-                //     console.log("Pushing in " + word.w);
-                //     this.translations.push(allTranslations[index]);
-                // } else {
-                //     emptyWords.push(word);
-                //     console.log("Pushing out " + word.w);
-                //     emptyTranslations.push(allTranslations[index]);
-                // }                
+                }              
             });
 
-        emptyWords.forEach(word => this.words.push(word));
-        // emptyTranslations.forEach(translation => this.translations.push(translation));
-
-        // this.translations = this.translations
-        //     .filter(translation => (translation) ? translation.length > 0 : false);
+        emptyWords.forEach(word => this.words.push(word));        
     }
 
 
@@ -152,8 +129,16 @@ export class DatabaseComponent implements OnInit {
 
 
     // Called by the button
-    private editWord(word: Word): void {
-    
+    private editWord(word: Word, wordIndex: number): void {        
+        this.inputWord = word.w;
+        this.inputTranslations = this.translations[wordIndex] ? 
+            this.translations[wordIndex].map(word => word.w).join(";") : "";
+        // this.inputTranslations = this.db
+        //     .getConnectionByFromId(this.languageIndexFrom, this.languageIndexTo, word.id)
+        //     .to
+        //     .map(id => this.);
+        this.inputTags = word.t.join(";");
+        this.idOfWordBeingEdited = word.id;
 
         this.loadContent();
     }
@@ -161,7 +146,7 @@ export class DatabaseComponent implements OnInit {
     // Called by the button
     private removeWord(word: Word): void {
         console.log(">> Removed " + word.w);
-        
+
         this.db.deleteWord(this.languageIndexFrom, this.languageIndexTo, 
             this.db.getWordIndexById(this.languageIndexFrom, word.id));        
 
@@ -172,13 +157,19 @@ export class DatabaseComponent implements OnInit {
     private submitWord():void {
         // TODO
         // Assume everything is valid for now
-        
-        this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-            this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+        if (this.idOfWordBeingEdited != undefined) {
+            // console.log();
+            this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
+                this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+        } else {
+            this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
+                this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+        }
 
         this.inputWord = "";
         this.inputTranslations = "";
         this.inputTags = "";
+        this.idOfWordBeingEdited = undefined; // Clear for future usage
 
         this.loadContent();
 
