@@ -51,7 +51,7 @@ export class DatabaseComponent implements OnInit {
         this.loadContent();                 
     }
 
-    private loadContent():void {
+    private loadContent(): void {
         this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
         this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
@@ -120,17 +120,9 @@ export class DatabaseComponent implements OnInit {
         console.log(this.db.connections[2][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
     }
 
-    private saveDB(): void {
+    private dumpChangesToDatabase(): void {
         this.db.saveProgress();
-    }
-
-
-    // Generates index
-    private generateWord(): number {
-        return 0;
-    }
-
-
+    }  
 
     // Called by the button
     private editWord(word: Word, wordIndex: number): void {        
@@ -145,24 +137,25 @@ export class DatabaseComponent implements OnInit {
         this.idOfWordBeingEdited = word.id;
 
         this.loadContent();
+
+        this.dumpChangesToDatabase();
     }
 
     // Called by the button
-    private removeWord(word: Word): void {
-        console.log(">> Removed " + word.w);
-
+    private removeWord(word: Word): void {       
         this.db.deleteWord(this.languageIndexFrom, this.languageIndexTo, 
             this.db.getWordIndexById(this.languageIndexFrom, word.id));        
 
         this.loadContent();
+
+        this.dumpChangesToDatabase();
     }
 
     // Called by the button
-    private submitWord():void {
+    private submitWord(): void {
         // TODO
         // Assume everything is valid for now
-        if (this.idOfWordBeingEdited != undefined) {
-            // console.log();
+        if (this.idOfWordBeingEdited != undefined) {            
             this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
                 this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
         } else {
@@ -177,11 +170,10 @@ export class DatabaseComponent implements OnInit {
 
         this.loadContent();
 
-        // this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-        //     "newGerWord", ["tr1", "tr2"], ["tag1"]);
+        this.dumpChangesToDatabase();
     }    
 
-    private selectLanguage(source: string, language: Language):void {        
+    private selectLanguage(source: string, language: Language): void {        
         this.resetDropdowns();
         
         switch (source) {
@@ -208,7 +200,7 @@ export class DatabaseComponent implements OnInit {
         }
     }
 
-    private swapLanguages():void {        
+    private swapLanguages(): void {        
         const temp = this.languageIndexFrom;
         this.languageIndexFrom = this.languageIndexTo;
         this.languageIndexTo = temp;
@@ -216,7 +208,7 @@ export class DatabaseComponent implements OnInit {
         this.loadContent();
     }
 
-    private toggleDropdown(event:any, source: string):void {        
+    private toggleDropdown(event: any, source: string): void {        
         // To prevent the click from getting to the resetDropDowns().
         // Otherwise we couldn't open the dropdown
         event.stopPropagation();        
@@ -234,7 +226,7 @@ export class DatabaseComponent implements OnInit {
     }
 
     // When the user clicks anywhere on the screen
-    private resetDropdowns():void {        
+    private resetDropdowns(): void {        
         if (this.isOpenFrom) {
             this.isOpenFrom = false;
         }

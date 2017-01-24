@@ -1,27 +1,34 @@
 <div class="wrapper testing vertical">
     <section class="horizontal" id="boxes-container">
         <div class="box">
-            <span class="primary-text-dark" id="word-to-translate">#Word#</span>
+            <span class="primary-text-dark" id="word-to-translate">{{currentWord ? currentWord.w : ""}}</span>
 
-            <span class="secondary-text-2" id="lang-label">#eng#</span>
+            <span class="secondary-text-2" id="lang-label">{{currentLanguage ? currentLanguage.label : ""}}</span>
 
-            <span class="secondary-text-1" id="word-score">#110#</span>
+            <span class="secondary-text-1" id="word-score">{{currentWord ? currentWord.s : 0.0}}</span>
         </div>
 
         <!-- ng-keypress="onSubmitKeyDown($event)" -->
-        <textarea class="box primary-text-dark" id="user-answer" placeholder="Type answer here"></textarea>
+        <textarea class="box primary-text-dark" id="user-answer" placeholder="Type answer here" [(ngModel)]="userInput"></textarea>
     </section>
 
     <section class="" id="result-panel">
-        <div class="horizontal">
+        <div class="horizontal" 
+            [ngClass]="{'correctAnswerColor': currentState == stateCorrectAnswer, 
+                        'almostCorrectAnswerColor': currentState == stateAlmostCorrectAnswer,
+                        'wrongAnswerColor': currentState == stateWrongAnswer }">                        
             <div>
                 <p>
-                    <span class="primary-text-light" id="correct-answer-text">#All translations:||Corect answer:#</span>
+                    <span class="primary-text-light" id="correct-answer-text">
+                        {{currentState > stateUserInput ? 
+                            (currentState == stateWrongAnswer ? "Corect answer: " : "All translations: ") : ""
+                        }}
+                    </span>
                     <span class="primary-text-light" id="correct-answer">#translation#</span>
                 </p>
             </div>
 
-            <button class="button button-big green">#Submit||Next#</button>
+            <button class="button button-big green" (click)="submitAnswer()">#Submit||Next#</button>
         </div>
     </section>
 

@@ -49,7 +49,7 @@ export class DatabaseService {
                         }) // Now languageUrls[] is ready
                         .then(() => { // Based on it now load wordsOfLanguages[]
                             this.wordsOfLanguages = []; // Init, so we can push later
-                            console.log('>> Database is being accessed');
+                            // console.log('>> Database is being accessed');
                             return Promise.all( // Load them in parallel
                                 // List of urls => list of promises
                                 this.languageUrls.map(languageUrl =>
@@ -108,6 +108,9 @@ export class DatabaseService {
     updateWordScore(languageIndex: number, wordIndex: number, scoreDelta: number): number {        
         const word: Word = this.wordsOfLanguages[languageIndex].words[wordIndex];
         word.s += scoreDelta;
+        if (word.s < 0) {
+            word.s = 0.0;
+        }
 
         return word.s;
     }
@@ -408,6 +411,10 @@ export class DatabaseService {
 
     getLanguageIndexByLabel(label: string): number {
         return this.settings.languages.registeredLanguages.findIndex(language => language.label == label);
+    }
+
+    getLanguages(): Language[] {
+        return this.settings.languages.registeredLanguages;
     }
     
    

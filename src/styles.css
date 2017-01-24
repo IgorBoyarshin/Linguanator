@@ -181,6 +181,18 @@ nav a.active {
 
 /* TESTING */
 /* ============================================ */
+
+.correctAnswerColor {
+    background: green !important;
+}
+.almostCorrectAnswerColor {
+    background: yellow !important;
+}
+.wrongAnswerColor {
+    background: red !important;
+}
+
+
 .wrapper.testing {
     width: 100%;
 }
