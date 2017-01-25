@@ -52,10 +52,10 @@ export class DatabaseService {
                             // console.log('>> Database is being accessed');
                             return Promise.all( // Load them in parallel
                                 // List of urls => list of promises
-                                this.languageUrls.map(languageUrl =>
+                                this.languageUrls.map((languageUrl, index) =>
                                     this.loadFromFile(languageUrl)
                                         .then(json =>
-                                            this.wordsOfLanguages.push(json as WordsOfLanguage)
+                                            this.wordsOfLanguages[index] = (json as WordsOfLanguage)
                                         )
                                 )
                             );
@@ -272,6 +272,11 @@ export class DatabaseService {
 
     getConnectionIndexByFromId(languageIndexFrom: number, languageIndexTo: number, fromId: number): number {
         return this.connections[languageIndexFrom][languageIndexTo].findIndex(connection => connection.from == fromId);
+    }
+
+    isConnectionEmpty(languageIndexFrom: number, languageIndexTo: number, fromId: number): boolean {
+        const connection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, fromId);
+        return (connection ? connection.to.length == 0 : true);
     }
     
     // Cleans the connection entry if it is empty after the removal
