@@ -10,6 +10,27 @@ import { WordsOfLanguage } from './words-of-language';
 
 import 'rxjs/add/operator/toPromise';
 
+class WordIn {
+    w: string;
+    cc: number;
+    fcd: {y: number; m: number; d:number;};
+    tr: string[];
+    s: string;
+    t: string;
+}
+
+class WordL {
+    w: string;
+    tr: string[];
+    s: string;
+    t: string;
+}
+
+class Ger {
+    inProgress: WordIn[];
+    learned: WordL[];
+}
+
 @Injectable()
 export class DatabaseService {
     private urlToDatabase = '../../database/';    
@@ -68,8 +89,7 @@ export class DatabaseService {
         }
 
         return this.initPromise;
-    }    
-
+    }        
 
 
 
@@ -226,7 +246,7 @@ export class DatabaseService {
             // so create a new entry (add)
             
             // Adding the new word to the database
-            const newId: number = ++this.wordsOfLanguages[languageIndexFrom].lastUsedId;
+            const newId: number = this.wordsOfLanguages[languageIndexFrom].nextIdToUse++;
             const startingScore: number = 0.0;
             const newWord: Word = new Word(newId, wordName, startingScore, tags);
             this.wordsOfLanguages[languageIndexFrom].words.push(newWord);
@@ -470,5 +490,109 @@ export class DatabaseService {
     private handleError(error: any): Promise<any> {
         console.error('>> Error in DatabaseService:', error);
         return Promise.reject(error.message || error);
+    }
+
+    translateOldDatabase(): void {
+        let wordsGer: WordsOfLanguage = new WordsOfLanguage();
+        let wordsEng: WordsOfLanguage = new WordsOfLanguage();
+        let wordsRus: WordsOfLanguage = new WordsOfLanguage();
+        let conn: Connection[][][] = [];        
+
+        this.loadFromFile(this.urlToDatabase + "words" + ".json")
+            .then(json => json as Ger)
+            .then(ger => {                
+                wordsGer.words = [];
+                wordsEng.words = [];
+                wordsRus.words = [];
+                conn.push([[], [], []]);
+                conn.push([[], [], []]);
+                conn.push([[], [], []]);
+                conn[0][0] = [];
+                conn[0][1] = []; // Ger -> Eng
+                conn[0][2] = [];
+                conn[1][0] = []; // Eng -> Ger
+                conn[1][1] = [];
+                conn[1][2] = [];
+                conn[2][0] = []; // From rus
+                conn[2][1] = []; // From rus
+                conn[2][2] = []; // From rus
+
+                wordsGer.nextIdToUse = 0;
+                wordsEng.nextIdToUse = 0;
+                wordsRus.nextIdToUse = 0;
+
+                ger.inProgress.reverse().map(wordGer => {
+                    const gerId: number = wordsGer.nextIdToUse++;
+                    let newGerWord: Word = new Word(gerId, wordGer.w, 1.0 * wordGer.cc, [wordGer.t]);
+                    wordsGer.words.push(newGerWord);
+                   
+                    conn[0][1].push(new Connection(gerId, []));
+
+                    wordGer.tr.forEach(engWordStr => {
+                        let engWord: Word = wordsEng.words.find(word => word.w == engWordStr);
+                        if (engWord) {                            
+                            // Word itself
+                            engWord.s = Math.round((engWord.s + 1.0 * wordGer.cc) / 2.0 * 100.0) / 100.0;
+                            if (!engWord.t.includes(wordGer.t)) {
+                                engWord.t.push(wordGer.t);
+                            }
+
+                            // connections
+                            conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
+                            conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
+                        } else {
+                            const id: number = wordsEng.nextIdToUse++;
+                            engWord = new Word(id, engWordStr, +(Math.floor(1.0 * wordGer.cc * 0.75 * 100.0) / 100.0).toFixed(2), [wordGer.t]);
+                            wordsEng.words.push(engWord);
+
+                            // connections
+                            conn[1][0].push(new Connection(id, [gerId]));
+                            conn[0][1].find(connection => connection.from == gerId).to.push(id);
+                        }
+                    });                    
+                });
+
+                ger.learned.reverse().map(wordGer => {
+                    const scoreToSet: number = 25.0;
+                    const gerId: number = wordsGer.nextIdToUse++;                    
+                    let newGerWord: Word = new Word(gerId, wordGer.w, scoreToSet, [wordGer.t]);
+                    wordsGer.words.push(newGerWord);
+                   
+                    conn[0][1].push(new Connection(gerId, []));
+
+                    wordGer.tr.forEach(engWordStr => {
+                        let engWord: Word = wordsEng.words.find(word => word.w == engWordStr);
+                        if (engWord) {                            
+                            // Word itself
+                            engWord.s = +(Math.floor((engWord.s + scoreToSet - 5.0) / 2.0 * 100.0) / 100.0).toFixed(2);
+                            if (!engWord.t.includes(wordGer.t)) {
+                                engWord.t.push(wordGer.t);
+                            }
+
+                            // connections
+                            conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
+                            conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
+                        } else {
+                            const id: number = wordsEng.nextIdToUse++;
+                            engWord = new Word(id, engWordStr, scoreToSet - 5.0, [wordGer.t]);
+                            wordsEng.words.push(engWord);
+
+                            // connections
+                            conn[1][0].push(new Connection(id, [gerId]));
+                            conn[0][1].find(connection => connection.from == gerId).to.push(id);
+                        }
+                    });                    
+                });
+            })
+            .then(() => {
+                Promise.all([
+                    this.saveToFile(this.urlToDatabase + "rus_n" + ".json", wordsRus).then(() => {}),
+                    this.saveToFile(this.urlToDatabase + "eng_n" + ".json", wordsEng).then(() => {}),
+                    this.saveToFile(this.urlToDatabase + "ger_n" + ".json", wordsGer).then(() => {}),
+                    this.saveToFile(this.urlToDatabase + "connections_n" + ".json", {"langFromTo": conn}).then(() => {})
+                ])
+                .catch(this.handleError);
+            })
+            .catch(this.handleError);
     }
 }
