@@ -54,7 +54,8 @@
                 <td>{{word.t.join("; ")}}</td>
 
                 <td><button (click)="editWord(word, wordIndex)" class="button button-small yellow">Edit</button></td>
-                <td><button (click)="removeWord(word)" class="button button-small red">Del</button></td>
+                <td><button (click)="removeWord(word)" class="button button-small red" 
+                    [disabled]="translations[wordIndex] ? translations[wordIndex].length == 0 : true">Del</button></td>
             </tr>
             
         </table>
