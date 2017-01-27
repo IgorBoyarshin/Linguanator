@@ -29,6 +29,8 @@
         <button class="button button-big green" (click)="submitWord()">Submit</button>
     </section>
 
+    <p id="loading-sign" *ngIf="isTableLoading">Loading the database...</p>
+
     <section class="">        
         <table id="words-table">
 

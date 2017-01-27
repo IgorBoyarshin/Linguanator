@@ -328,6 +328,13 @@ section#process-word-panel > input {
     outline: none;
 }
 
+p#loading-sign {
+    text-align: center;
+    margin: 0rem 0rem 1rem 1rem;
+    font-size: 1.1rem;
+    color: red;
+}
+
 table#words-table {
     border-collapse: collapse;
     border-spacing: 0;
