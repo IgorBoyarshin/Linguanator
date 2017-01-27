@@ -25,6 +25,7 @@ export class TestingComponent implements OnInit {
     private userInput: string = "";
     private currentWord: Word;
     private correctTranslations: Word[] = [];
+    private answerScore: number = 0.0;
 
     // private showingAnswerState: boolean = false;
     private stateUserInput: number = 0;
@@ -52,7 +53,7 @@ export class TestingComponent implements OnInit {
         ];
         
         // Will contain only the two languages specified in the langPair, others will be undefined
-        // Will contain only those words that have non-zero translations[] in the other language
+        // Will contain only those words that have non-zero translations[] in the other language        
         this.sortedWordsIndices = this.db.getLanguages()
             .map((lang, index) => index)
             .map(langIndex => this.languagePairToUse.includes(langIndex) ? this.db.wordsOfLanguages[langIndex] : undefined)
@@ -93,14 +94,17 @@ export class TestingComponent implements OnInit {
 
                 const parsedAnswer: number[] = 
                     this.parseAnswer(this.userInput.split(';'), this.correctTranslations.map(word => word.w));
-                
-                const scoreDelta = this.evaluateAnswer(parsedAnswer);
+                                
                 // console.log("Parsed: " + parsedAnswer + " of " + this.correctTranslations.length);
                 // console.log("Delta: " + scoreDelta);
 
                 const amountOfCorrect = parsedAnswer.reduce((acc, curr) => acc += (curr == 2 ? 1 : 0), 0);
                 const amountOfAlmostCorrect = parsedAnswer.reduce((acc, curr) => acc += (curr == 1 ? 1 : 0), 0);
                 const amountOfWrong = parsedAnswer.length - amountOfCorrect - amountOfAlmostCorrect;
+
+                const scoreDelta = this.evaluateAnswer(amountOfWrong, amountOfAlmostCorrect + amountOfCorrect);
+                this.answerScore = scoreDelta;
+
                 if (amountOfCorrect + amountOfAlmostCorrect < amountOfWrong) {
                     this.currentState = this.stateWrongAnswer;
                 } else {
@@ -121,12 +125,8 @@ export class TestingComponent implements OnInit {
     }
 
     // Returns the score delta
-    private evaluateAnswer(parsedAnswer: number[]): number {
-        if (parsedAnswer.some(value => value >= 1)) {
-            return 1.0;
-        } else {
-            return -1.0;
-        }
+    private evaluateAnswer(wrong: number, correct: number): number {        
+        return Math.floor((Math.pow(correct, 3.0 / 4.0) - wrong) * 100.0) / 100.0;
     }
 
     // Returns an array

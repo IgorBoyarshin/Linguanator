@@ -25,6 +25,9 @@
                     <span class="primary-text-light" id="correct-answer" *ngIf="currentState > stateUserInput">
                         <span *ngFor="let translation of correctTranslations">{{translation.w}}; </span>
                     </span>
+                    <span class="primary-text-dark" id="answer-score" *ngIf="currentState > stateUserInput">
+                        {{answerScore >= 0 ? "+" : ""}}{{answerScore}}
+                    </span>
                 </p>
             </div>
 
