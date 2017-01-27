@@ -37,7 +37,8 @@ export class DatabaseService {
     private settingsFileName = 'settings';
     private connectionsFileName = 'connections';
     private settingsUrl = this.urlToDatabase + this.settingsFileName + '.json';
-    private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
+    // private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
+    private connectionsUrl = this.urlToDatabase + this.connectionsFileName + "_n" + '.json';
     // private languageFileNames : string[]; // can do without(be local)
     private languageUrls : string[];
 
@@ -48,6 +49,8 @@ export class DatabaseService {
     settings: Settings;
     wordsOfLanguages: WordsOfLanguage[]; // [lang]
     connections: Connection[][][]; // [lang from][lang to][index of connection]    
+
+    private registeredTags: Promise<string[]>;
 
     constructor(private http: Http) {
 
@@ -65,7 +68,8 @@ export class DatabaseService {
                         .then(() => { // Fill the languageUrls[] using settings' data
                             this.languageUrls = this.settings.languages.registeredLanguages
                                     .map(
-                                        language => (this.urlToDatabase + language.label + '.json')
+                                        // language => (this.urlToDatabase + language.label + '.json')
+                                        language => (this.urlToDatabase + language.label + "_n" + '.json')
                                     );
                         }) // Now languageUrls[] is ready
                         .then(() => { // Based on it now load wordsOfLanguages[]
@@ -75,13 +79,17 @@ export class DatabaseService {
                                 // List of urls => list of promises
                                 this.languageUrls.map((languageUrl, index) =>
                                     this.loadFromFile(languageUrl)
-                                        .then(json =>
-                                            this.wordsOfLanguages[index] = (json as WordsOfLanguage)
-                                        )
+                                        .then(json => {
+                                            this.wordsOfLanguages[index] = (json as WordsOfLanguage);
+                                            this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
+                                        })
                                 )
                             );
                         }) // Now wordsOfLanguages[] is ready
                 ])
+                .then(
+                    () => this.updateRegisteredTags()
+                )
                 // .then((res) => {
                 //     console.log('>> Everything is loaded!');                            
                 // })
@@ -154,6 +162,11 @@ export class DatabaseService {
     deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): void {        
         const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;        
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId);
+        if (connectionIndex < 0) {
+            // This words doesn't have translations for given language pair.
+            // If the user wants to remove this word, then he has to find the right lang pair
+            return;
+        }
         const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
 
         // Remove connection from translations[] to the word
@@ -343,7 +356,26 @@ export class DatabaseService {
 
     // +=+=+=+=+=+=   TAG   +=+=+=+=+=+=
 
+    getRegisteredTags(): Promise<string[]> {
+        return this.registeredTags;
+    }
 
+    private updateRegisteredTags(): void {
+        this.registeredTags = Promise.resolve(
+            this.wordsOfLanguages
+                .map((wordsOfLanguage) => wordsOfLanguage.words) // get words[] for every language
+                .reduce((arrays, array) => arrays.concat(array), []) // concat all words[]
+                .map(word => word.t) // retrieve tags from words
+                .reduce((allTags, tags) => allTags.concat(tags), []) // concat all tags[]
+                .reduce((accTags, tag) => { // keep unique
+                    if (!accTags.includes(tag)) {
+                        accTags.push(tag);
+                    }
+
+                    return accTags;
+                }, [])
+        );        
+    }
 
     
     // +=+=+=+=+=+=   GENERAL   +=+=+=+=+=+=
@@ -464,9 +496,11 @@ export class DatabaseService {
                 this.saveToFile(this.connectionsUrl, {"langFromTo": this.connections}),                
                 Promise.all( 
                     // List of urls => list of promises
-                    this.languageUrls.map((languageUrl, index) =>
-                        this.saveToFile(languageUrl, this.wordsOfLanguages[index])
-                    )
+                    this.languageUrls.map((languageUrl, index) => {                        
+                        this.wordsOfLanguages[index].words.map(word => word.w = this.encodeString(word.w));
+                        this.saveToFile(languageUrl, this.wordsOfLanguages[index]);
+                        this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
+                    })
                 )
             ])
             .catch(this.handleError);
@@ -490,6 +524,104 @@ export class DatabaseService {
     private handleError(error: any): Promise<any> {
         console.error('>> Error in DatabaseService:', error);
         return Promise.reject(error.message || error);
+    } 
+
+    private encodeChar(char: string): string {        
+        // German
+        switch(char.charAt(0)) {
+            case 'ü':
+                return ';u';                
+            case 'ä':
+                return ';a';                
+            case 'ö':
+                return ';o';                
+            case 'ß':
+                return ';s';
+            default:
+                break;
+        }
+
+        // Rus, Ukr     
+        const charCode: number = char.charCodeAt(0);   
+
+        const lowest: number = 1072; // Rus letter 'a'
+        const highest: number = 1111; // Ukr letter 'i' with two dots
+        const dec: number = lowest;
+        const shift: number = 10; // to get two digits
+
+        // Rus && Ukr
+        if (charCode >= lowest && charCode <= highest) {
+            return ";" + (charCode - dec + shift); 
+        } else {
+            return char; // Leave as is
+            // return ";??"
+        }
+    } 
+
+    private encodeString(str: string): string {
+        let res: string = "";
+
+        for (let char of str) {            
+            res += this.encodeChar(char);
+        }
+
+        return res;
+    }
+
+    private decodeString(str: string): string {
+        let res: string = "";        
+
+        const lowest: number = 1072; // Rus letter 'a'
+        const highest: number = 1111; // Ukr letter 'i' with two dots
+        const inc: number = lowest;
+        const shift: number = 10; // to get two digits
+
+        for (let i = 0; i < str.length; i++) {
+            let char: string = str.charAt(i);
+
+            if (char == ';') {        
+                if (this.isDigit(str.charAt(i + 1)) && this.isDigit(str.charAt(i + 2))) { // Rus || Ukr
+                    let theNumber: number = +str.charAt(i + 1) * 10 + +str.charAt(i + 2);
+
+                    const charCode = theNumber + inc - shift;
+                    if (charCode >= lowest && charCode <= highest) {
+                        char = String.fromCharCode(charCode);
+                    } else {
+                        char = '?';
+                    }
+
+                    i += 2;
+                } else { // Ger
+                    switch(str.charAt(i + 1)) {
+                        case 'u':
+                            char = 'ü';
+                            break;
+                        case 'a':
+                            char = 'ä';
+                            break;
+                        case 'o':
+                            char = 'ö';
+                            break;
+                        case 's':
+                            char = 'ß';
+                            break;
+                        default:
+                            char = '?';
+                    }
+
+                    i += 1;
+                }                
+            }
+
+            res += char;
+        }
+
+        return res;
+    }
+
+    private isDigit(char: string): boolean {
+        const code = char.charCodeAt(0);
+        return (code >= 48 && code <= 57);
     }
 
     translateOldDatabase(): void {

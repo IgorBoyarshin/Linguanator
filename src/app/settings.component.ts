@@ -8,30 +8,23 @@ import { Language } from './language';
     templateUrl: './settings.component.html'
 })
 export class SettingsComponent implements OnInit {
-    constructor(private databaseService: DatabaseService) {}
+    constructor(databaseService: DatabaseService) {
+        this.db = databaseService;        
+    }
+
+    private db: DatabaseService;
 
     private registeredLanguages: Language[];
-    private allTags: string[];
+    private allTags: string[] = [];
 
-    ngOnInit(): void {
-        this.databaseService.init()
+    ngOnInit(): void {        
+        this.db.init()
             .then(() => this.onDatabaseLoad());
     }
 
-    private onDatabaseLoad(): void {
-        this.registeredLanguages = this.databaseService.settings.languages.registeredLanguages;
+    private onDatabaseLoad(): void {        
+        this.registeredLanguages = this.db.settings.languages.registeredLanguages;
 
-        this.allTags = this.databaseService.wordsOfLanguages
-            .map((wordsOfLanguage) => wordsOfLanguage.words) // get words[] for every language
-            .reduce((arrays, array) => arrays.concat(array), []) // concat all words[]
-            .map(word => word.t) // retrieve tags from words
-            .reduce((allTags, tags) => allTags.concat(tags), []) // concat all tags[]
-            .reduce((accTags, tag) => { // keep unique
-                if (!accTags.includes(tag)) {
-                    accTags.push(tag);
-                }
-
-                return accTags;
-            }, []);
+        // this.allTags = this.db.getRegisteredTags();
     }
 }

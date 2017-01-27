@@ -164,10 +164,12 @@ export class DatabaseComponent implements OnInit {
         // Assume everything is valid for now
         if (this.idOfWordBeingEdited != undefined) {            
             this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
-                this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+                this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
+                this.inputTags.toLowerCase().split(";"));
         } else {
             this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-                this.inputWord, this.inputTranslations.split(";"), this.inputTags.split(";"));
+                this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
+                this.inputTags.toLowerCase().split(";"));
         }
 
         this.inputWord = "";

@@ -76,7 +76,7 @@ export class TestingComponent implements OnInit {
             this.currentLanguageIndexFrom, this.currentLanguageIndexTo, this.currentWord);
     }
 
-    private handleKeyPress(event: KeyboardEvent): void {        
+    private handleKeyPress(event: KeyboardEvent): void {
         if (event.keyCode == 13) {
             if (this.currentState > this.stateUserInput) {
                 this.submitAnswer();
