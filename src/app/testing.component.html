@@ -7,28 +7,30 @@
 
             <span class="secondary-text-1" id="word-score">{{currentWord ? currentWord.s : 0.0}}</span>
         </div>
-
-        <!-- ng-keypress="onSubmitKeyDown($event)" -->
-        <textarea class="box primary-text-dark" id="user-answer" placeholder="Type answer here" [(ngModel)]="userInput"></textarea>
+                        
+        <textarea class="box primary-text-dark" id="user-answer" placeholder="Type answer here"
+            [(ngModel)]="userInput" (keyup.enter)="submitAnswer()" [disabled]="currentState != stateUserInput"></textarea>
     </section>
 
-    <section class="" id="result-panel">
+    <section class="" id="result-panel">        
         <div class="horizontal" 
             [ngClass]="{'correctAnswerColor': currentState == stateCorrectAnswer, 
                         'almostCorrectAnswerColor': currentState == stateAlmostCorrectAnswer,
                         'wrongAnswerColor': currentState == stateWrongAnswer }">                        
             <div>
                 <p>
-                    <span class="primary-text-light" id="correct-answer-text">
-                        {{currentState > stateUserInput ? 
-                            (currentState == stateWrongAnswer ? "Corect answer: " : "All translations: ") : ""
-                        }}
+                    <span class="primary-text-light" id="correct-answer-text" *ngIf="currentState > stateUserInput">
+                        {{currentState == stateWrongAnswer ? "Corect answer: " : "All translations: "}}
                     </span>
-                    <span class="primary-text-light" id="correct-answer">#translation#</span>
+                    <span class="primary-text-light" id="correct-answer" *ngIf="currentState > stateUserInput">
+                        <span *ngFor="let translation of correctTranslations">{{translation.w}}; </span>
+                    </span>
                 </p>
             </div>
 
-            <button class="button button-big green" (click)="submitAnswer()">#Submit||Next#</button>
+            <button class="button button-big green" (click)="submitAnswer()" 
+                [disabled]="userInput.trim().length == 0">{{currentState == stateUserInput ? "Submit" : "Next"}}</button>
+                <!--[disabled]="currentState == stateUserInput ? (userInput.length == 0) : false">{{currentState == stateUserInput ? "Submit" : "Next"}}</button>-->
         </div>
     </section>
 
