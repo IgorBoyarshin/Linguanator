@@ -41,17 +41,17 @@ export class DatabaseComponent implements OnInit {
             .then(() => this.onDatabaseLoad());
     }
 
-    private onDatabaseLoad(): void {              
+    private onDatabaseLoad(): void {                              
         // Starting languages
         this.languageIndexFrom = this.db.getLanguageIndexByLabel("ger"); // TODO: change
         this.languageIndexTo = this.db.getLanguageIndexByLabel("eng"); // TODO: change        
         
         this.allLanguages = this.db.settings.languages.registeredLanguages;
 
-        this.loadContent();                 
+        this.loadContent();               
     }
 
-    private loadContent(): void {
+    private loadContent(): void {        
         this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
         this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
@@ -59,17 +59,18 @@ export class DatabaseComponent implements OnInit {
 
         // Words appear only if they have non-empty translation in that language        
         this.words = [];
-        this.translations = [];
+        this.translations = [];        
+        let words: Word[] = [];
         let emptyWords: Word[] = [];        
         // const connections: Connection[] = this.db.connections[this.languageIndexFrom][this.languageIndexTo];
         this.db.wordsOfLanguages[this.languageIndexFrom].words
-            .forEach((word, index) => {  
+            .forEach((word, index) => {
                 const connection: Connection = this.db.getConnectionByFromId(
                         this.languageIndexFrom, this.languageIndexTo, word.id);
 
                 // Exists at all for this pair of langs, and is not empty
                 if (connection && connection.to.length > 0) {
-                    this.words.push(word);
+                    words.push(word);
                     this.translations.push(connection.to.map(id => wordsTo.find(word => word.id == id)));
                 } else {
                     emptyWords.push(word);
@@ -77,7 +78,11 @@ export class DatabaseComponent implements OnInit {
                 }              
             });
 
-        emptyWords.forEach(word => this.words.push(word));        
+        emptyWords.forEach(word => words.push(word));    
+
+        const amountOfDummyWordsToDisplayBeforeTheRestLoads = 20;
+        this.words = words.slice(0, amountOfDummyWordsToDisplayBeforeTheRestLoads);
+        setTimeout(() => this.words = words, 10);
     }
 
 
