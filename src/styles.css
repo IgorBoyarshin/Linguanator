@@ -135,32 +135,56 @@ linguanator-app {
 footer, .app-without-footer:after {
     height: 5rem;
 }
+/*footer {
+    height: 5rem;
+    width: 100%;
+    position: fixed;
+    bottom: 0rem;
+}*/
 
 
 
 /* GENERAL */
 /* ============================================ */
 header {
+    position: fixed;    
+    z-index: 999;
+    width: 100%;
+    height: 5rem;
     background-color: #f82;
     font-weight: bold;
     font-size: 2.1rem;
     text-align: center;
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
+    line-height: 5rem;    
+    /*padding-top: 0.8rem;
+    padding-bottom: 0.8rem;*/
     color: black;
 
     letter-spacing: 1.5rem;
 }
 section.main {
+    /*position: absolute;    
+    top: 5rem;*/
+    /*left: 10rem;*/
     background-color: #eee;
 }
+/*the main view*/
 section.main > *:last-child {
     flex-grow: 1;
+    position: relative;
+    left: 10rem;
+    top: 5rem;
+    margin-bottom: 5rem;
+    margin-right: 10rem;
 }
 footer {
     background-color: #aaf;
 }
 nav {
+    position: fixed;
+    z-index: 999;
+    top: 5rem;
+    width: 10rem;
     background-color: white;
 }
 nav a {
@@ -175,6 +199,9 @@ nav a:hover {
 }
 nav a.active {
     background-color: white;
+}
+router-outlet {
+
 }
 
 
@@ -325,11 +352,11 @@ section#choose-language-panel > * {
     text-align: left;
 }
 
-section#process-word-panel {
+section.input-word-panel {
     padding: 0.8rem;
     background: #ccc;    
 }
-section#process-word-panel > input {
+section.input-word-panel > input {
     margin-right: 1rem;
     border-radius: 0.7rem;
     padding: 0.3rem 0.4rem 0.3rem 0.4rem;
@@ -362,7 +389,9 @@ table#words-table th {
     font-size: 1.2rem;
 }
 
+sction#edit-word-view {
 
+}
 
 
 /* SETTINGS */
