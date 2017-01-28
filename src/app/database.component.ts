@@ -143,9 +143,9 @@ export class DatabaseComponent implements OnInit {
         this.inputTags = word.t.join(";");
         this.idOfWordBeingEdited = word.id;
 
-        this.loadContent();
+        // this.loadContent();
 
-        this.dumpChangesToDatabase();
+        // this.dumpChangesToDatabase();
     }
 
     // Called by the button
@@ -155,31 +155,39 @@ export class DatabaseComponent implements OnInit {
 
         this.loadContent();
 
-        this.dumpChangesToDatabase();
+        // this.dumpChangesToDatabase();
+    }
+
+    private submitWordEdit(): void {
+        this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
+            this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
+            this.inputTags.toLowerCase().split(";"));
+
+        this.discardWordEdit();
+    }
+
+    private discardWordEdit(): void {        
+        this.inputWord = "";
+        this.inputTranslations = "";
+        this.inputTags = "";
+        this.idOfWordBeingEdited = undefined;
     }
 
     // Called by the button
     private submitWord(): void {
         // TODO
         // Assume everything is valid for now
-        if (this.idOfWordBeingEdited != undefined) {            
-            this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
-                this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
-                this.inputTags.toLowerCase().split(";"));
-        } else {
-            this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-                this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
-                this.inputTags.toLowerCase().split(";"));
-        }
+        this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
+            this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
+            this.inputTags.toLowerCase().split(";"));
 
         this.inputWord = "";
         this.inputTranslations = "";
-        this.inputTags = "";
-        this.idOfWordBeingEdited = undefined; // Clear for future usage
+        this.inputTags = "";        
 
         this.loadContent();
 
-        this.dumpChangesToDatabase();
+        // this.dumpChangesToDatabase();
     }    
 
     private selectLanguage(source: string, language: Language): void {        

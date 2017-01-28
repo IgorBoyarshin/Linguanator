@@ -22,7 +22,7 @@
         </div>
     </section>    
 
-    <section class="horizontal" id="process-word-panel">
+    <section class="horizontal input-word-panel" id="process-word-panel">
         <input type="text" placeholder="Word" [(ngModel)]="inputWord"/>
         <input type="text" placeholder="Translations" [(ngModel)]="inputTranslations">
         <input type="text" placeholder="Tags" [(ngModel)]="inputTags">
@@ -60,6 +60,16 @@
             
         </table>
     </section>
+    
+    <div class="" id="edit-word-view" *ngIf="idOfWordBeingEdited != undefined">
+        <section class="horizontal input-word-panel">
+            <input type="text" placeholder="Word" [(ngModel)]="inputWord"/>
+            <input type="text" placeholder="Translations" [(ngModel)]="inputTranslations">
+            <input type="text" placeholder="Tags" [(ngModel)]="inputTags">
+            <button class="button button-big green" (click)="submitWordEdit()">Submit</button>
+            <button class="button button-big green" (click)="discardWordEdit()">Discard</button>
+        </section>
+    </div>
 
     <button (click)="showDB()">SHOW</button>
 

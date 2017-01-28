@@ -200,9 +200,6 @@ nav a:hover {
 nav a.active {
     background-color: white;
 }
-router-outlet {
-
-}
 
 
 
@@ -356,8 +353,11 @@ section.input-word-panel {
     padding: 0.8rem;
     background: #ccc;    
 }
-section.input-word-panel > input {
+section.input-word-panel > * {
     margin-right: 1rem;
+}
+section.input-word-panel > input {
+    
     border-radius: 0.7rem;
     padding: 0.3rem 0.4rem 0.3rem 0.4rem;
     font-size: 0.9rem;
@@ -389,8 +389,17 @@ table#words-table th {
     font-size: 1.2rem;
 }
 
-sction#edit-word-view {
-
+div#edit-word-view {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 5rem 0rem 5rem 10rem;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+div#edit-word-view > section {
+    margin-top: 4.25rem; /* TODO: CHANGE */
 }
 
 
