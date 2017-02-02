@@ -7,42 +7,22 @@ import { Language } from './language';
 import { Connection } from './connection';
 import { Word } from './word';
 import { WordsOfLanguage } from './words-of-language';
+import { OldDatabaseLoader } from './old-database-loader';
 
 import 'rxjs/add/operator/toPromise';
 
-class WordIn {
-    w: string;
-    cc: number;
-    fcd: {y: number; m: number; d:number;};
-    tr: string[];
-    s: string;
-    t: string;
-}
-
-class WordL {
-    w: string;
-    tr: string[];
-    s: string;
-    t: string;
-}
-
-class Ger {
-    inProgress: WordIn[];
-    learned: WordL[];
-}
-
 @Injectable()
 export class DatabaseService {
-    private urlToDatabase = '../../database/';    
+    private urlToDatabase = '../../database/';
     private settingsFileName = 'settings';
     private connectionsFileName = 'connections';
     private settingsUrl = this.urlToDatabase + this.settingsFileName + '.json';
     // private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
     private connectionsUrl = this.urlToDatabase + this.connectionsFileName + "_n" + '.json';
     // private languageFileNames : string[]; // can do without(be local)
-    private languageUrls : string[];
+    private languageUrls: string[];
 
-    private headers = new Headers({'Content-Type': 'application/json'});
+    private headers = new Headers({ 'Content-Type': 'application/json' });
 
     // private initHasBeenTriggered:boolean = false;
     private initPromise: Promise<any>;
@@ -53,7 +33,7 @@ export class DatabaseService {
     private registeredTags: Promise<string[]>;
 
     constructor(private http: Http) {
-
+        this.translateOldDatabase();
     }
 
     // Load everything into memory.
@@ -61,34 +41,33 @@ export class DatabaseService {
     init(): Promise<any> {
         if (!this.initPromise) { // not null => has been initiated
             this.initPromise = Promise.all([
-                    this.loadFromFile(this.connectionsUrl)
-                        .then(json => this.connections = (json.langFromTo as Connection[][][])),
-                    this.loadFromFile(this.settingsUrl)
-                        .then(json => this.settings = (json as Settings)) // Now settings is ready
-                        .then(() => { // Fill the languageUrls[] using settings' data
-                            this.languageUrls = this.settings.languages.registeredLanguages
-                                    .map(
-                                        // language => (this.urlToDatabase + language.label + '.json')
-                                        language => (this.urlToDatabase + language.label + "_n" + '.json')
-                                    );
-                        }) // Now languageUrls[] is ready
-                        .then(() => { // Based on it now load wordsOfLanguages[]
-                            this.wordsOfLanguages = []; // Init, so we can push later
-                            // console.log('>> Database is being accessed');
-                            return Promise.all( // Load them in parallel
-                                // List of urls => list of promises
-                                this.languageUrls.map((languageUrl, index) =>
-                                    this.loadFromFile(languageUrl)
-                                        .then(json => {
-                                            this.wordsOfLanguages[index] = (json as WordsOfLanguage);
-                                            this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
-                                        })
-                                )
+                this.loadFromFile(this.connectionsUrl)
+                    .then(json => this.connections = (json.langFromTo as Connection[][][])),
+                this.loadFromFile(this.settingsUrl)
+                    .then(json => this.settings = (json as Settings)) // Now settings is ready
+                    .then(() => { // Fill the languageUrls[] using settings' data
+                        this.languageUrls = this.settings.languages.registeredLanguages
+                            .map(
+                            // language => (this.urlToDatabase + language.label + '.json')
+                            language => (this.urlToDatabase + language.label + "_n" + '.json')
                             );
-                        }) // Now wordsOfLanguages[] is ready
-                ])
-                .then(
-                    () => this.updateRegisteredTags()
+                    }) // Now languageUrls[] is ready
+                    .then(() => { // Based on it now load wordsOfLanguages[]
+                        this.wordsOfLanguages = []; // Init, so we can push later
+                        // console.log('>> Database is being accessed');
+                        return Promise.all( // Load them in parallel
+                            // List of urls => list of promises
+                            this.languageUrls.map((languageUrl, index) =>
+                                this.loadFromFile(languageUrl)
+                                    .then(json => {
+                                        this.wordsOfLanguages[index] = (json as WordsOfLanguage);
+                                        this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
+                                    })
+                            )
+                        );
+                    }) // Now wordsOfLanguages[] is ready
+            ])
+                .then(() => this.updateRegisteredTags()
                 )
                 // .then((res) => {
                 //     console.log('>> Everything is loaded!');                            
@@ -97,7 +76,7 @@ export class DatabaseService {
         }
 
         return this.initPromise;
-    }        
+    }
 
 
 
@@ -109,21 +88,21 @@ export class DatabaseService {
 
     // +=+=+=+=+=+=   WORD   +=+=+=+=+=+=
 
-    getWordById(languageIndex: number, id: number): Word {        
+    getWordById(languageIndex: number, id: number): Word {
         return this.getById(id, this.wordsOfLanguages[languageIndex].words);
     }
 
     getWordByName(languageIndex: number, name: string): Word {
-        return this.wordsOfLanguages[languageIndex].words.find(word => word.w == name);        
+        return this.wordsOfLanguages[languageIndex].words.find(word => word.w == name);
     }
 
-    getWordIndexById(languageIndex: number, id: number): number {        
+    getWordIndexById(languageIndex: number, id: number): number {
         return this.getIndexById(id, this.wordsOfLanguages[languageIndex].words);
     }
 
     getWordIndexByName(languageIndex: number, name: string): number {
-        return this.wordsOfLanguages[languageIndex].words.findIndex(word => word.w == name);        
-    }    
+        return this.wordsOfLanguages[languageIndex].words.findIndex(word => word.w == name);
+    }
 
     getWordScore(languageIndex: number, wordIndex: number): number {
         return this.wordsOfLanguages[languageIndex].words[wordIndex].s;
@@ -133,7 +112,7 @@ export class DatabaseService {
         this.wordsOfLanguages[languageIndex].words[wordIndex].s = score;
     }
 
-    updateWordScore(languageIndex: number, wordIndex: number, scoreDelta: number): number {        
+    updateWordScore(languageIndex: number, wordIndex: number, scoreDelta: number): number {
         const word: Word = this.wordsOfLanguages[languageIndex].words[wordIndex];
         word.s += scoreDelta;
         if (word.s < 0) {
@@ -143,15 +122,15 @@ export class DatabaseService {
         return word.s;
     }
 
-    addWord(languageIndexFrom: number, languageIndexTo: number, 
+    addWord(languageIndexFrom: number, languageIndexTo: number,
         wordName: string, translations: string[], tags: string[]): number {
-                
+
         return this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags);
     }
-    
+
     editWord(languageIndexFrom: number, languageIndexTo: number, wordId: number,
         newWordName: string, translations: string[], tags: string[]): void {
-        
+
         this.getWordById(languageIndexFrom, wordId).w = newWordName;
         this.submitWord(languageIndexFrom, languageIndexTo, newWordName, translations, tags);
     }
@@ -159,8 +138,8 @@ export class DatabaseService {
     // Removes the word entry and all connections to and from it FOR GIVEN LANGUAGE PAIR
     // (so if the words exists elsewhere as well, equivalent to only removing connections for given lang pair)
     // The words remains for other languages in the words database
-    deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): void {        
-        const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;        
+    deleteWord(languageIndexFrom: number, languageIndexTo: number, wordIndex: number): void {
+        const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
         const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordId);
         if (connectionIndex < 0) {
             // This words doesn't have translations for given language pair.
@@ -170,9 +149,9 @@ export class DatabaseService {
         const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
 
         // Remove connection from translations[] to the word
-        connection.to            
+        connection.to
             .forEach(translationWordId => {
-                this.removeSingleConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);                
+                this.removeSingleConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);
                 this.removeWordIfNoConnectionsFrom(languageIndexTo, this.getWordIndexById(languageIndexTo, translationWordId));
             });
 
@@ -184,10 +163,10 @@ export class DatabaseService {
     }
 
     // return: id of the word, undefined otherwise        
-    private submitWord(languageIndexFrom: number, languageIndexTo: number, 
-        wordName: string, translations: string[], tags: string[], 
-        joinInsteadOfReplace: boolean = false, depthLevel: number = 0): number {                    
-        
+    private submitWord(languageIndexFrom: number, languageIndexTo: number,
+        wordName: string, translations: string[], tags: string[],
+        joinInsteadOfReplace: boolean = false, depthLevel: number = 0): number {
+
         const wordIndex: number = this.getWordIndexByName(languageIndexFrom, wordName);
         const wordAlreadyExists = wordIndex >= 0;
 
@@ -201,12 +180,12 @@ export class DatabaseService {
             if (!wordAlreadyExists) {
                 console.error(">> WHY??????");
                 return undefined;
-            }            
+            }
 
             return this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
-        }        
+        }
 
-        
+
         if (wordAlreadyExists) { // then join || rewrite            
             const wordId: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
             let forwardConnection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, wordId);
@@ -215,7 +194,7 @@ export class DatabaseService {
             if (!forwardConnection) {
                 const newLength: number = this.connections[languageIndexFrom][languageIndexTo].push(new Connection(wordId, []));
                 forwardConnection = this.connections[languageIndexFrom][languageIndexTo][newLength - 1];
-            }            
+            }
 
             if (joinInsteadOfReplace) { // join
 
@@ -228,7 +207,7 @@ export class DatabaseService {
                 tags.forEach(tag => this.addIfNotPresent(tag, this.getWordById(languageIndexFrom, wordId).t));
 
             } else { // replace
-                                
+
                 // Add all translations to the database(if needed) and return their IDs
                 // It is here where we create new BACK CONNECTIONS t1->w, t2->w, ... to the given word
                 const newTranslationIds: number[] = translations
@@ -239,11 +218,11 @@ export class DatabaseService {
                 // Need to remove all previous(old) BACK CONNECTIONS from each translation of this word
                 forwardConnection.to
                     .filter(id => !newTranslationIds.includes(id)) // Leave only old IDs - need to remove only them
-                    .forEach(wordIdToRemoveConnectionFor => {                        
+                    .forEach(wordIdToRemoveConnectionFor => {
                         this.removeSingleConnection(languageIndexTo, languageIndexFrom, wordIdToRemoveConnectionFor, wordId);
                         //The only connection left TO this word(from the given word) will be removed later
-                        this.removeWordIfNoConnectionsFrom(languageIndexTo, 
-                            this.getWordIndexById(languageIndexTo, wordIdToRemoveConnectionFor)); 
+                        this.removeWordIfNoConnectionsFrom(languageIndexTo,
+                            this.getWordIndexById(languageIndexTo, wordIdToRemoveConnectionFor));
                     });
 
                 // Now manage FORWARD CONNECTIONS w->t1, w->t2, ...
@@ -257,7 +236,7 @@ export class DatabaseService {
 
         } else { // does not exist yet
             // so create a new entry (add)
-            
+
             // Adding the new word to the database
             const newId: number = this.wordsOfLanguages[languageIndexFrom].nextIdToUse++;
             const startingScore: number = 0.0;
@@ -279,11 +258,11 @@ export class DatabaseService {
     // Also removes empty connection entry FROM this word
     private removeWordIfNoConnectionsFrom(languageIndex: number, wordIndex: number): boolean {
         const wordId: number = this.wordsOfLanguages[languageIndex].words[wordIndex].id;
-        const noConnections: boolean = 
+        const noConnections: boolean =
             // For each language from the given language
             this.connections[languageIndex].every(languageConnections => {
                 const soughtConnectionIndex: number = languageConnections.findIndex(connection => connection.from == wordId);
-                return this.removeConnectionEntryIfEmpty(soughtConnectionIndex, languageConnections);                
+                return this.removeConnectionEntryIfEmpty(soughtConnectionIndex, languageConnections);
             });
 
         // Remove the word
@@ -311,42 +290,42 @@ export class DatabaseService {
         const connection: Connection = this.getConnectionByFromId(languageIndexFrom, languageIndexTo, fromId);
         return (connection ? connection.to.length == 0 : true);
     }
-    
+
     // Cleans the connection entry if it is empty after the removal
     // Removes a single a->b connection
-    private removeSingleConnection(languageIndexFrom: number, languageIndexTo: number, 
+    private removeSingleConnection(languageIndexFrom: number, languageIndexTo: number,
         wordIdFrom: number, wordIdTo: number): void {
 
         // const wordIdFrom: number = this.wordsOfLanguages[languageIndexFrom].words[wordIndexFrom].id;
         // const wordIdTo: number = this.wordsOfLanguages[languageIndexTo].words[wordIndexTo].id;
-        const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordIdFrom);        
+        const connectionIndex: number = this.getConnectionIndexByFromId(languageIndexFrom, languageIndexTo, wordIdFrom);
         const connection: Connection = this.connections[languageIndexFrom][languageIndexTo][connectionIndex];
-        if (!connection) {            
+        if (!connection) {
             return;
         }
 
-        const indexOfSoughtId: number = connection.to.indexOf(wordIdTo);            
+        const indexOfSoughtId: number = connection.to.indexOf(wordIdTo);
         connection.to.splice(indexOfSoughtId, 1);
 
-        this.removeConnectionEntryIfEmpty(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);        
+        this.removeConnectionEntryIfEmpty(connectionIndex, this.connections[languageIndexFrom][languageIndexTo]);
     }
 
     // Remove the 'from and to[]' entry altogether    
-    private removeConnectionEntry(connectionIndex: number, array: Connection[]): void {        
+    private removeConnectionEntry(connectionIndex: number, array: Connection[]): void {
         array.splice(connectionIndex, 1);
     }
 
     // Returns true if the connection got removed or it was not present at all
-    private removeConnectionEntryIfEmpty(connectionIndex: number, array: Connection[]):boolean {
+    private removeConnectionEntryIfEmpty(connectionIndex: number, array: Connection[]): boolean {
         const connection: Connection = array[connectionIndex];
 
         if (connection) {
-            if (connection.to.length == 0) {                
+            if (connection.to.length == 0) {
                 this.removeConnectionEntry(connectionIndex, array);
                 return true;
             } else {
                 return false;
-            }            
+            }
         }
 
         return true;
@@ -374,22 +353,22 @@ export class DatabaseService {
 
                     return accTags;
                 }, [])
-        );        
+        );
     }
 
-    
+
     // +=+=+=+=+=+=   GENERAL   +=+=+=+=+=+=
 
     // Tries to guess, not do a bruteforce search
     // Assumes the ids are sorted
-    getIndexById(id: number, array: any[]): number {                
+    getIndexById(id: number, array: any[]): number {
         if (array.length < 10) {
             return array.findIndex(element => element.id == id);
         }
         // Else
 
         let index: number = id;
-        
+
         // Step back if we're out of bounds
         while (array[index] == undefined) {
             index--;
@@ -397,7 +376,7 @@ export class DatabaseService {
             if (index < 0) {
                 return -1;
             }
-        }        
+        }
 
         // Now we're inside the array for sure
         // Just look for the sought id
@@ -436,7 +415,7 @@ export class DatabaseService {
     //             return false;
     //         }
     //     }
-        
+
     //     a.forEach(value => {
     //         if (!b.includes(value)) {
     //             return false;
@@ -445,12 +424,12 @@ export class DatabaseService {
 
     //     return true;
     // }
-    
 
-    
+
+
     // +=+=+=+=+=+=   GET   LANGUAGE   +=+=+=+=+=+=
 
-    getLanguage(index: number): Language {        
+    getLanguage(index: number): Language {
         return this.settings.languages.registeredLanguages[index];
     }
 
@@ -473,8 +452,8 @@ export class DatabaseService {
     getLanguages(): Language[] {
         return this.settings.languages.registeredLanguages;
     }
-    
-   
+
+
 
 
 
@@ -486,55 +465,55 @@ export class DatabaseService {
     // +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
 
 
-    saveProgress():void {
+    saveProgress(): void {
         this.saveToDatabase();
     }
 
     private saveToDatabase(): Promise<string[]> {
         return Promise.all([
-                this.saveToFile(this.settingsUrl, this.settings),                
-                this.saveToFile(this.connectionsUrl, {"langFromTo": this.connections}),                
-                Promise.all( 
-                    // List of urls => list of promises
-                    this.languageUrls.map((languageUrl, index) => {                        
-                        this.wordsOfLanguages[index].words.map(word => word.w = this.encodeString(word.w));
-                        this.saveToFile(languageUrl, this.wordsOfLanguages[index]);
-                        this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
-                    })
-                )
-            ])
+            this.saveToFile(this.settingsUrl, this.settings),
+            this.saveToFile(this.connectionsUrl, { "langFromTo": this.connections }),
+            Promise.all(
+                // List of urls => list of promises
+                this.languageUrls.map((languageUrl, index) => {
+                    this.wordsOfLanguages[index].words.map(word => word.w = this.encodeString(word.w));
+                    this.saveToFile(languageUrl, this.wordsOfLanguages[index]);
+                    this.wordsOfLanguages[index].words.map(word => word.w = this.decodeString(word.w));
+                })
+            )
+        ])
             .catch(this.handleError);
     }
 
     private loadFromFile(url: string): Promise<any> {
         return this.http.get(url)
-                        .toPromise()
-                        .then(response => response.json())
-                        .catch(this.handleError);
+            .toPromise()
+            .then(response => response.json())
+            .catch(this.handleError);
     }
 
     private saveToFile(url: string, content: any): Promise<any> {
-        return this.http.post(url, JSON.stringify(content), {headers: this.headers})
-                        .toPromise()
-                        // .then()
-                        .catch(this.handleError);
+        return this.http.post(url, JSON.stringify(content), { headers: this.headers })
+            .toPromise()
+            // .then()
+            .catch(this.handleError);
     }
-    
+
 
     private handleError(error: any): Promise<any> {
         console.error('>> Error in DatabaseService:', error);
         return Promise.reject(error.message || error);
-    } 
+    }
 
-    private encodeChar(char: string): string {        
+    private encodeChar(char: string): string {
         // German
-        switch(char.charAt(0)) {
+        switch (char.charAt(0)) {
             case 'ü':
-                return ';u';                
+                return ';u';
             case 'ä':
-                return ';a';                
+                return ';a';
             case 'ö':
-                return ';o';                
+                return ';o';
             case 'ß':
                 return ';s';
             default:
@@ -542,7 +521,7 @@ export class DatabaseService {
         }
 
         // Rus, Ukr     
-        const charCode: number = char.charCodeAt(0);   
+        const charCode: number = char.charCodeAt(0);
 
         const lowest: number = 1072; // Rus letter 'a'
         const highest: number = 1111; // Ukr letter 'i' with two dots
@@ -551,17 +530,17 @@ export class DatabaseService {
 
         // Rus && Ukr
         if (charCode >= lowest && charCode <= highest) {
-            return ";" + (charCode - dec + shift); 
+            return ";" + (charCode - dec + shift);
         } else {
             return char; // Leave as is
             // return ";??"
         }
-    } 
+    }
 
     private encodeString(str: string): string {
         let res: string = "";
 
-        for (let char of str) {            
+        for (let char of str) {
             res += this.encodeChar(char);
         }
 
@@ -569,7 +548,7 @@ export class DatabaseService {
     }
 
     private decodeString(str: string): string {
-        let res: string = "";        
+        let res: string = "";
 
         const lowest: number = 1072; // Rus letter 'a'
         const highest: number = 1111; // Ukr letter 'i' with two dots
@@ -579,7 +558,7 @@ export class DatabaseService {
         for (let i = 0; i < str.length; i++) {
             let char: string = str.charAt(i);
 
-            if (char == ';') {        
+            if (char == ';') {
                 if (this.isDigit(str.charAt(i + 1)) && this.isDigit(str.charAt(i + 2))) { // Rus || Ukr
                     let theNumber: number = +str.charAt(i + 1) * 10 + +str.charAt(i + 2);
 
@@ -592,7 +571,7 @@ export class DatabaseService {
 
                     i += 2;
                 } else { // Ger
-                    switch(str.charAt(i + 1)) {
+                    switch (str.charAt(i + 1)) {
                         case 'u':
                             char = 'ü';
                             break;
@@ -610,7 +589,7 @@ export class DatabaseService {
                     }
 
                     i += 1;
-                }                
+                }
             }
 
             res += char;
@@ -625,105 +604,17 @@ export class DatabaseService {
     }
 
     translateOldDatabase(): void {
-        let wordsGer: WordsOfLanguage = new WordsOfLanguage();
-        let wordsEng: WordsOfLanguage = new WordsOfLanguage();
-        let wordsRus: WordsOfLanguage = new WordsOfLanguage();
-        let conn: Connection[][][] = [];        
-
         this.loadFromFile(this.urlToDatabase + "words" + ".json")
-            .then(json => json as Ger)
-            .then(ger => {                
-                wordsGer.words = [];
-                wordsEng.words = [];
-                wordsRus.words = [];
-                conn.push([[], [], []]);
-                conn.push([[], [], []]);
-                conn.push([[], [], []]);
-                conn[0][0] = [];
-                conn[0][1] = []; // Ger -> Eng
-                conn[0][2] = [];
-                conn[1][0] = []; // Eng -> Ger
-                conn[1][1] = [];
-                conn[1][2] = [];
-                conn[2][0] = []; // From rus
-                conn[2][1] = []; // From rus
-                conn[2][2] = []; // From rus
-
-                wordsGer.nextIdToUse = 0;
-                wordsEng.nextIdToUse = 0;
-                wordsRus.nextIdToUse = 0;
-
-                ger.inProgress.reverse().map(wordGer => {
-                    const gerId: number = wordsGer.nextIdToUse++;
-                    let newGerWord: Word = new Word(gerId, wordGer.w, 1.0 * wordGer.cc, [wordGer.t]);
-                    wordsGer.words.push(newGerWord);
-                   
-                    conn[0][1].push(new Connection(gerId, []));
-
-                    wordGer.tr.forEach(engWordStr => {
-                        let engWord: Word = wordsEng.words.find(word => word.w == engWordStr);
-                        if (engWord) {                            
-                            // Word itself
-                            engWord.s = Math.round((engWord.s + 1.0 * wordGer.cc) / 2.0 * 100.0) / 100.0;
-                            if (!engWord.t.includes(wordGer.t)) {
-                                engWord.t.push(wordGer.t);
-                            }
-
-                            // connections
-                            conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
-                            conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
-                        } else {
-                            const id: number = wordsEng.nextIdToUse++;
-                            engWord = new Word(id, engWordStr, +(Math.floor(1.0 * wordGer.cc * 0.75 * 100.0) / 100.0).toFixed(2), [wordGer.t]);
-                            wordsEng.words.push(engWord);
-
-                            // connections
-                            conn[1][0].push(new Connection(id, [gerId]));
-                            conn[0][1].find(connection => connection.from == gerId).to.push(id);
-                        }
-                    });                    
-                });
-
-                ger.learned.reverse().map(wordGer => {
-                    const scoreToSet: number = 25.0;
-                    const gerId: number = wordsGer.nextIdToUse++;                    
-                    let newGerWord: Word = new Word(gerId, wordGer.w, scoreToSet, [wordGer.t]);
-                    wordsGer.words.push(newGerWord);
-                   
-                    conn[0][1].push(new Connection(gerId, []));
-
-                    wordGer.tr.forEach(engWordStr => {
-                        let engWord: Word = wordsEng.words.find(word => word.w == engWordStr);
-                        if (engWord) {                            
-                            // Word itself
-                            engWord.s = +(Math.floor((engWord.s + scoreToSet - 5.0) / 2.0 * 100.0) / 100.0).toFixed(2);
-                            if (!engWord.t.includes(wordGer.t)) {
-                                engWord.t.push(wordGer.t);
-                            }
-
-                            // connections
-                            conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
-                            conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
-                        } else {
-                            const id: number = wordsEng.nextIdToUse++;
-                            engWord = new Word(id, engWordStr, scoreToSet - 5.0, [wordGer.t]);
-                            wordsEng.words.push(engWord);
-
-                            // connections
-                            conn[1][0].push(new Connection(id, [gerId]));
-                            conn[0][1].find(connection => connection.from == gerId).to.push(id);
-                        }
-                    });                    
-                });
-            })
-            .then(() => {
+            .then(json => new OldDatabaseLoader(json))
+            .then(oldDbLoader => {
                 Promise.all([
-                    this.saveToFile(this.urlToDatabase + "rus_n" + ".json", wordsRus).then(() => {}),
-                    this.saveToFile(this.urlToDatabase + "eng_n" + ".json", wordsEng).then(() => {}),
-                    this.saveToFile(this.urlToDatabase + "ger_n" + ".json", wordsGer).then(() => {}),
-                    this.saveToFile(this.urlToDatabase + "connections_n" + ".json", {"langFromTo": conn}).then(() => {})
+                    this.saveToFile(this.urlToDatabase + "rus_n" + ".json", oldDbLoader.getWordsRus()).then(() => { }),
+                    this.saveToFile(this.urlToDatabase + "eng_n" + ".json", oldDbLoader.getWordsEng()).then(() => { }),
+                    this.saveToFile(this.urlToDatabase + "ger_n" + ".json", oldDbLoader.getWordsGer()).then(() => { }),
+                    this.saveToFile(this.urlToDatabase + "connections_n" + ".json",
+                        { "langFromTo": oldDbLoader.getConnections() }).then(() => { })
                 ])
-                .catch(this.handleError);
+                    .catch(this.handleError);
             })
             .catch(this.handleError);
     }
