@@ -70,7 +70,7 @@ export class DatabaseService {
                     }) // Now wordsOfLanguages[] is ready
             ])
                 .then(() => {
-                    this.updateRegisteredTags();                    
+                    this.updateRegisteredTags();
                 })
                 // .then((res) => {
                 //     console.log('>> Everything is loaded!');                            
@@ -157,7 +157,15 @@ export class DatabaseService {
         connection.to
             .forEach(translationWordId => {
                 this.removeSingleConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);
-                this.removeWordIfNoConnectionsFrom(languageIndexTo, this.getWordIndexById(languageIndexTo, translationWordId));
+                const translationIndex: number = this.getWordIndexById(languageIndexTo, translationWordId);
+                const gotRemoved: boolean = 
+                    this.removeWordIfNoConnectionsFrom(languageIndexTo, translationIndex);
+
+                if (!gotRemoved) {
+                    const translation: Word = this.wordsOfLanguages[languageIndexTo].words[translationIndex];
+                    const tagsForTranslation: string[] = this.collectTagsForWord(languageIndexTo, translationWordId);
+                    translation.t = translation.t.filter(tag => tagsForTranslation.includes(tag));
+                }
             });
 
         // Remove connection from the word to translations[]
@@ -170,7 +178,7 @@ export class DatabaseService {
     /** 
      * In theory, joinInsteadOfReplace == false (and depth == 0) when altering the db from the outside,
      * and joinInsteadOfReplace == true (and depth == 1) when submitting translations(db is altered from the inside).
-     * @return id of the word, undefined Otherwise.     
+     * Returns id of the word, undefined Otherwise.     
      */
     private submitWord(languageIndexFrom: number, languageIndexTo: number,
         wordName: string, translations: string[], tags: string[],
@@ -214,9 +222,9 @@ export class DatabaseService {
                     )
                     .forEach(translationId => this.addIfNotPresent(translationId, forwardConnection.to));
 
-                // Supposed to be executed only for translations
-                word.t = this.collectTagsForWord(languageIndexFrom, wordId);
-                // tags.forEach(tag => this.addIfNotPresent(tag, word.t));                
+                const tagsForWord: string[] = this.collectTagsForWord(languageIndexFrom, wordId);
+                word.t = word.t.filter(tag => tagsForWord.includes(tag));
+                tags.forEach(tag => this.addIfNotPresent(tag, word.t));          
 
             } else { // replace
 
@@ -269,9 +277,9 @@ export class DatabaseService {
     }
 
     /**     
-     * Assumes connections are two-way: if a->b exists, then b->a has to be present as well.
-     * Also removes empty connection entry FROM this word.
-     * @return true if the word got removed.
+     * Assumes connections are two-way: if a->b exists, then b->a has to be present as well.     
+     * Also removes empty connection entry FROM this word.     
+     * Returns true if the word got removed.
      */
     private removeWordIfNoConnectionsFrom(languageIndex: number, wordIndex: number): boolean {
         const wordId: number = this.wordsOfLanguages[languageIndex].words[wordIndex].id;
@@ -343,7 +351,7 @@ export class DatabaseService {
     }
 
     /**
-     * @return true if the connection had zero length or it was not present at all.
+     * Returns true if the connection had zero length or it was not present at all.
      */
     private removeConnectionEntryIfEmpty(connectionIndex: number, array: Connection[]): boolean {
         const connection: Connection = array[connectionIndex];
@@ -383,7 +391,7 @@ export class DatabaseService {
                     return accTags;
                 }, [])
         );
-    }
+    }    
 
     // Supposed to be executed only for translations
     private collectTagsForWord(languageIndex: number, wordId: number): string[] {
@@ -392,11 +400,11 @@ export class DatabaseService {
             .map(connection => connection == undefined ? [] : connection.to)
             .map((translationIds, langIndex) =>
                 translationIds
-                    .map(translationId => this.getWordById(langIndex, translationId).t)                    
-                    .reduce((accTags, tags) => accTags.concat(tags), [])                    
-            ) 
+                    .map(translationId => this.getWordById(langIndex, translationId).t)
+                    .reduce((accTags, tags) => accTags.concat(tags), [])
+            )
             .reduce((allTags, tagsFromLanguage) => {
-                tagsFromLanguage.forEach(tag => this.addIfNotPresent(tag, allTags)); 
+                tagsFromLanguage.forEach(tag => this.addIfNotPresent(tag, allTags));
                 return allTags;
             }, []);
     }
