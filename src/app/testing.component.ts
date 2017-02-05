@@ -64,8 +64,7 @@ export class TestingComponent implements OnInit {
         // Will contain only those words that have non-zero translations[] in the other language        
         this.sortedWordsIndices = this.db.getLanguages()
             .map((lang, index) => index)
-            .map(langIndex => this.languagePairToUse.includes(langIndex) ? this.db.wordsOfLanguages[langIndex].words : [])
-            // .map(words => words ? words.words : [])
+            .map(langIndex => this.languagePairToUse.includes(langIndex) ? this.db.wordsOfLanguages[langIndex].words : [])            
             .map((words, languageIndex) => {
                 const langIndexFrom = languageIndex;
                 const langIndexTo = languageIndex == this.languagePairToUse[0] ? this.languagePairToUse[1] : this.languagePairToUse[0];
@@ -79,23 +78,17 @@ export class TestingComponent implements OnInit {
                         return this.db.tagsToUse.some(tag => tagsOfWord.includes(tag));
                     })
                     // the word has translation for given language pair
-                    .filter(index => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, words[index].id));
-
-                // return words                    
-                //     .filter(word => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, word.id));
+                    .filter(index => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, words[index].id));                
             })
             .map((indices, languageIndex) => {
                 const words: Word[] = this.db.wordsOfLanguages[languageIndex].words;
                 return indices.sort((i1, i2) => words[i1].s - words[i2].s);
-            });
-            // .map(words => this.range(0, words.length).sort((i1, i2) => words[i1].s - words[i2].s));
-
+            });           
         
         this.setup();
     }
 
-    private dumpChanges(): void {
-        // this.setup();
+    private dumpChanges(): void {        
         this.db.saveProgress();
     }
 
@@ -161,6 +154,7 @@ export class TestingComponent implements OnInit {
             
             if (this.untilNextDump == 1) {
                 this.untilNextDump = this.db.settings.dumpFrequency;
+                this.dumpChanges();
             } else {
                 this.untilNextDump--;
             }

@@ -36,16 +36,7 @@ export class SettingsComponent implements OnInit {
     }
 
     private renameTag(oldTagName: string, newTagName: string): void {
-        this.db.renameAllTagOccurences(oldTagName, newTagName);
-        
-        const oldTagIndex: number = this.db.tagsToUse.findIndex(tag => tag == oldTagName);
-        if (this.db.tagsToUse.includes(oldTagName) && this.db.tagsToUse.includes(newTagName)) {            
-            this.db.tagsToUse.splice(oldTagIndex, 1);
-        } else {
-            if (oldTagIndex != undefined && oldTagIndex != -1) { // exists
-                this.db.tagsToUse[oldTagIndex] = newTagName;
-            }
-        }
+        this.db.renameAllTagOccurences(oldTagName, newTagName);        
     }
 
     private checkTag(tag: string): void {

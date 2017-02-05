@@ -131,7 +131,10 @@ export class DatabaseService {
     addWord(languageIndexFrom: number, languageIndexTo: number,
         wordName: string, translations: string[], tags: string[]): number {
 
-        return this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags);
+        const id: number = this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags);
+        this.updateTags();
+
+        return id;
     }
 
     editWord(languageIndexFrom: number, languageIndexTo: number, wordId: number,
@@ -139,6 +142,8 @@ export class DatabaseService {
 
         this.getWordById(languageIndexFrom, wordId).w = newWordName;
         this.submitWord(languageIndexFrom, languageIndexTo, newWordName, translations, tags);
+
+        this.updateTags();
     }
 
     /**
@@ -176,6 +181,8 @@ export class DatabaseService {
 
         // Remove the word itself if it is not needed in other langs
         this.removeWordIfNoConnectionsFrom(languageIndexFrom, wordIndex);
+
+        this.updateTags();
     }
 
     /** 
@@ -256,6 +263,11 @@ export class DatabaseService {
                 forwardConnection.to = newTranslationIds;
             }
 
+            // tags.forEach(tag => {
+            //     this.addIfNotPresent(tag, this.registeredTags);
+            //     this.addIfNotPresent(tag, this.tagsToUse);
+            // });            
+
             return wordId;
 
         } else { // does not exist yet
@@ -265,7 +277,7 @@ export class DatabaseService {
             const newId: number = this.wordsOfLanguages[languageIndexFrom].nextIdToUse++;
             const startingScore: number = 0.0;
             const newWord: Word = new Word(newId, wordName, startingScore, tags);
-            this.wordsOfLanguages[languageIndexFrom].words.push(newWord);
+            this.wordsOfLanguages[languageIndexFrom].words.push(newWord);            
 
             // Now there exists the word entry in the database, so alreadyExists will == true
             return this.submitWord(languageIndexFrom, languageIndexTo, wordName, translations, tags, joinInsteadOfReplace, depthLevel);
@@ -388,11 +400,24 @@ export class DatabaseService {
             return;
         }        
 
-        const oldTagIndex: number = this.registeredTags.findIndex(tag => tag == oldTagName);
+        let oldTagIndex: number;
+
+        // Registered tags
+        oldTagIndex = this.registeredTags.findIndex(tag => tag == oldTagName);
         if (this.registeredTags.includes(newTagName)) {            
-            this.registeredTags.splice(oldTagIndex, 1);
+            this.registeredTags.splice(oldTagIndex, 1);            
         } else {
             this.registeredTags[oldTagIndex] = newTagName;
+        }
+
+        // Tags to use
+        oldTagIndex = this.tagsToUse.findIndex(tag => tag == oldTagName);
+        if (this.tagsToUse.includes(oldTagName) && this.tagsToUse.includes(newTagName)) {            
+            this.tagsToUse.splice(oldTagIndex, 1);
+        } else {
+            if (oldTagIndex != undefined && oldTagIndex != -1) { // exists
+                this.tagsToUse[oldTagIndex] = newTagName;
+            }
         }
 
         // Go through all words and change tags
@@ -416,12 +441,26 @@ export class DatabaseService {
                             }
                         })
                     })
-            )
+            );        
     }
 
     useAllTags(): void {
         this.tagsToUse = [];
         this.registeredTags.forEach(tag => this.tagsToUse.push(tag));
+    }
+
+    /**
+     * Updates registeredTags and tagsToUse
+     */
+    private updateTags(): void {
+        this.updateRegisteredTags();
+
+        let newTagsToUse: string[] = [];
+        this.tagsToUse.forEach(tag => {
+            if (this.registeredTags.includes(tag)) {
+                newTagsToUse.push(tag);
+            }
+        });
     }
 
     /**

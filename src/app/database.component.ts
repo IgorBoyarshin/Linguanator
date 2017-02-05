@@ -32,7 +32,7 @@ export class DatabaseComponent implements OnInit {
 
     private idOfWordBeingEdited: number = undefined;
 
-    private isTableLoading = true;
+    private isTableLoading: boolean = true;
 
     constructor(databaseService: DatabaseService) { 
         this.db = databaseService;
@@ -75,14 +75,13 @@ export class DatabaseComponent implements OnInit {
                     words.push(word);
                     this.translations.push(connection.to.map(id => wordsTo.find(word => word.id == id)));
                 } else {
-                    emptyWords.push(word);
-                    
+                    emptyWords.push(word);                    
                 }              
             });
 
         emptyWords.forEach(word => words.push(word));    
 
-        const amountOfDummyWordsToDisplayBeforeTheRestLoads = 20;
+        const amountOfDummyWordsToDisplayBeforeTheRestLoads: number = 20;
         this.words = words.slice(0, amountOfDummyWordsToDisplayBeforeTheRestLoads);
         this.isTableLoading = true;
         setTimeout(() => {this.words = words; this.isTableLoading = false}, 10);
@@ -129,24 +128,16 @@ export class DatabaseComponent implements OnInit {
     }
 
     private dumpChangesToDatabase(): void {
-        this.db.saveProgress();
+        // this.db.saveProgress();
     }  
 
     // Called by the button
     private editWord(word: Word, wordIndex: number): void {        
         this.inputWord = word.w;
         this.inputTranslations = this.translations[wordIndex] ? 
-            this.translations[wordIndex].map(word => word.w).join(";") : "";
-        // this.inputTranslations = this.db
-        //     .getConnectionByFromId(this.languageIndexFrom, this.languageIndexTo, word.id)
-        //     .to
-        //     .map(id => this.);
+            this.translations[wordIndex].map(word => word.w).join(";") : "";        
         this.inputTags = word.t.join(";");
         this.idOfWordBeingEdited = word.id;
-
-        // this.loadContent();
-
-        // this.dumpChangesToDatabase();
     }
 
     // Called by the button
@@ -155,8 +146,7 @@ export class DatabaseComponent implements OnInit {
             this.db.getWordIndexById(this.languageIndexFrom, word.id));        
 
         this.loadContent();
-
-        // this.dumpChangesToDatabase();
+        this.dumpChangesToDatabase();
     }
 
     private submitWordEdit(): void {
@@ -165,6 +155,8 @@ export class DatabaseComponent implements OnInit {
             this.inputTags.toLowerCase().split(";"));
 
         this.discardWordEdit();
+        this.loadContent();
+        this.dumpChangesToDatabase();
     }
 
     private discardWordEdit(): void {        
@@ -182,13 +174,9 @@ export class DatabaseComponent implements OnInit {
             this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
             this.inputTags.toLowerCase().split(";"));
 
-        this.inputWord = "";
-        this.inputTranslations = "";
-        this.inputTags = "";        
-
+        this.discardWordEdit();
         this.loadContent();
-
-        // this.dumpChangesToDatabase();
+        this.dumpChangesToDatabase();
     }    
 
     private selectLanguage(source: string, language: Language): void {        
