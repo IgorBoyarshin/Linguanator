@@ -349,15 +349,14 @@ section#choose-language-panel > * {
     text-align: left;
 }
 
-section.input-word-panel {
+section.input-panel {
     padding: 0.8rem;
     background: #ccc;    
 }
-section.input-word-panel > * {
+section.input-panel > * {
     margin-right: 1rem;
 }
-section.input-word-panel > input {
-    
+section.input-panel > input {    
     border-radius: 0.7rem;
     padding: 0.3rem 0.4rem 0.3rem 0.4rem;
     font-size: 0.9rem;
@@ -371,10 +370,14 @@ p#loading-sign {
     color: red;
 }
 
-table#words-table {
+table {
     border-collapse: collapse;
     border-spacing: 0;
 }
+/*table#words-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}*/
 table#words-table tr:nth-child(even) {
     background: #ccc;
 }
@@ -407,3 +410,23 @@ div#edit-word-view > section {
 /* ============================================ */
 
 
+table#tags-table {
+    font-size: 1.1rem;
+}
+table#tags-table td:nth-child(even) {    
+    padding-left: 1.0rem;
+}
+
+table#tags-table tr:nth-child(even) {
+    background: #ccc;
+}
+table#tags-table tr:nth-child(1) {
+    background: #ccc;
+}
+
+.settings > section {
+    margin: 1.0rem;
+}
+#tags section {
+    margin-bottom: 0.7rem;
+}

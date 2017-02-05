@@ -15,7 +15,7 @@ export class SettingsComponent implements OnInit {
     private db: DatabaseService;
 
     private registeredLanguages: Language[];
-    private allTags: string[] = [];
+    // private allTags: string[] = [];
 
     ngOnInit(): void {        
         this.db.init()
@@ -25,6 +25,43 @@ export class SettingsComponent implements OnInit {
     private onDatabaseLoad(): void {        
         this.registeredLanguages = this.db.settings.languages.registeredLanguages;
 
-        // this.allTags = this.db.getRegisteredTags();
+        if (this.db.tagsToUse.length == 0) {            
+            this.db.useAllTags();
+        }
+    }
+
+    private addTag(tagName: string): void {        
+        this.db.registeredTags.push(tagName);
+        this.db.tagsToUse.push(tagName);
+    }
+
+    private renameTag(oldTagName: string, newTagName: string): void {
+        this.db.renameAllTagOccurences(oldTagName, newTagName);
+        
+        const oldTagIndex: number = this.db.tagsToUse.findIndex(tag => tag == oldTagName);
+        if (this.db.tagsToUse.includes(oldTagName) && this.db.tagsToUse.includes(newTagName)) {            
+            this.db.tagsToUse.splice(oldTagIndex, 1);
+        } else {
+            if (oldTagIndex != undefined && oldTagIndex != -1) { // exists
+                this.db.tagsToUse[oldTagIndex] = newTagName;
+            }
+        }
+    }
+
+    private checkTag(tag: string): void {
+        const tagIndex: number = this.db.tagsToUse.findIndex(t => t == tag);
+        if (tagIndex == undefined || tagIndex == -1) {
+            this.db.tagsToUse.push(tag);
+        } else {
+            this.db.tagsToUse.splice(tagIndex, 1);
+        }        
+    }
+
+    private checkAllTags(): void {
+        if (this.db.tagsToUse.length == this.db.registeredTags.length) { // all tags are checked
+            this.db.tagsToUse = [];
+        } else {
+            this.db.useAllTags();
+        }
     }
 }

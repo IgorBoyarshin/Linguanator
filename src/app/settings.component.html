@@ -8,19 +8,47 @@
             <li *ngFor="let language of registeredLanguages">
                 {{language.name}} :: {{language.label}}
             </li>
-        </ul>
+        </ul>        
+    </section>
 
-        <br/>
-        <br/>
+    <section class="vertical" id="tags">
+        <section id="add-tag">
+            <section class="horizontal input-panel">
+                <input type="text" placeholder="Tag name" #inputTagName (keyup)="0">                
+                <button class="button button-big green" 
+                    [disabled]="inputTagName.value.trim().length == 0"
+                    (click)="addTag(inputTagName.value.trim()); inputTagName.value='';">Add</button>
+            </section>
+        </section>
 
-        <h2>WORDS</h2>
+        <section id="select-tags">
+            <table id="tags-table">
+                <tr>
+                    <th><a href="javascript:void(0)" (click)="checkAllTags()">Use all</a></th>
+                    <th>Tag</th>                    
+                </tr>
+                <tr *ngFor="let tag of this.db.registeredTags">
+                    <td style="text-align: center;">
+                        <input type="checkbox" [checked]="this.db.tagsToUse.includes(tag)" 
+                            (click)="checkTag(tag)">
+                    </td>
+                    <td>{{tag}}</td>
+                    <!--<td style="text-align: center;">{{x.indices[0].length}}</td>
+                    <td style="text-align: center;">{{x.indices[1].length}}</td>-->
+                </tr>
+            </table>
+        </section>
 
-        <h3>All tags</h3>
-        <ul>
-            <li *ngFor="let tag of allTags">
-                {{tag}}
-            </li>
-        </ul>
+        <section id="rename-tags">            
+            <section class="horizontal input-panel">
+                <input type="text" placeholder="Old tag name" #inputOldTagName (keyup)="0">
+                <input type="text" placeholder="New tag name" #inputNewTagName (keyup)="0">
+                <button class="button button-big green" 
+                    [disabled]="inputOldTagName.value.trim().length == 0 || inputNewTagName.value.trim().length == 0"
+                    (click)="renameTag(inputOldTagName.value.trim(), inputNewTagName.value.trim()); 
+                        inputOldTagName.value=''; inputNewTagName.value='';">Rename</button>
+            </section>
+        </section>
     </section>
 
 </div>

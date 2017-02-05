@@ -30,7 +30,8 @@ export class DatabaseService {
     wordsOfLanguages: WordsOfLanguage[]; // [lang]
     connections: Connection[][][]; // [lang from][lang to][index of connection]    
 
-    private registeredTags: Promise<string[]>;
+    registeredTags: string[] = [];
+    tagsToUse: string[] = [];
 
     constructor(private http: Http) {
 
@@ -71,6 +72,7 @@ export class DatabaseService {
             ])
                 .then(() => {
                     this.updateRegisteredTags();
+                    this.useAllTags();
                 })
                 // .then((res) => {
                 //     console.log('>> Everything is loaded!');                            
@@ -158,7 +160,7 @@ export class DatabaseService {
             .forEach(translationWordId => {
                 this.removeSingleConnection(languageIndexTo, languageIndexFrom, translationWordId, wordId);
                 const translationIndex: number = this.getWordIndexById(languageIndexTo, translationWordId);
-                const gotRemoved: boolean = 
+                const gotRemoved: boolean =
                     this.removeWordIfNoConnectionsFrom(languageIndexTo, translationIndex);
 
                 if (!gotRemoved) {
@@ -224,7 +226,7 @@ export class DatabaseService {
 
                 const tagsForWord: string[] = this.collectTagsForWord(languageIndexFrom, wordId);
                 word.t = word.t.filter(tag => tagsForWord.includes(tag));
-                tags.forEach(tag => this.addIfNotPresent(tag, word.t));          
+                tags.forEach(tag => this.addIfNotPresent(tag, word.t));
 
             } else { // replace
 
@@ -372,12 +374,61 @@ export class DatabaseService {
 
     // +=+=+=+=+=+=   TAG   +=+=+=+=+=+=
 
-    getRegisteredTags(): Promise<string[]> {
-        return this.registeredTags;
+    // getRegisteredTags(): string[] {
+    //     return this.registeredTags;
+    // }
+
+    renameAllTagOccurences(oldTagName: string, newTagName: string): void {
+        if (oldTagName == newTagName) {
+            return;
+        }
+
+        if (!this.registeredTags.includes(oldTagName)) {
+            return;
+        }        
+
+        const oldTagIndex: number = this.registeredTags.findIndex(tag => tag == oldTagName);
+        if (this.registeredTags.includes(newTagName)) {            
+            this.registeredTags.splice(oldTagIndex, 1);
+        } else {
+            this.registeredTags[oldTagIndex] = newTagName;
+        }
+
+        // Go through all words and change tags
+        this.wordsOfLanguages
+            .map(language => language.words)
+            .forEach(wordsOfLanguage =>
+                wordsOfLanguage
+                    .map(word => word.t)
+                    .forEach(tagsOfWord => {
+                        let foundNew: boolean = false;
+
+                        tagsOfWord.forEach((tag, index) => {
+                            switch (tag) {
+                                case oldTagName:
+                                    tagsOfWord[index] = newTagName;                                
+                                case newTagName: 
+                                    if (foundNew) {
+                                        tagsOfWord.splice(index, 1);
+                                    }
+                                    foundNew = true;                                
+                            }
+                        })
+                    })
+            )
     }
 
+    useAllTags(): void {
+        this.tagsToUse = [];
+        this.registeredTags.forEach(tag => this.tagsToUse.push(tag));
+    }
+
+    /**
+     * Collects all tags from the whole database
+     */
     private updateRegisteredTags(): void {
-        this.registeredTags = Promise.resolve(
+        // this.registeredTags = Promise.resolve(
+        this.registeredTags =
             this.wordsOfLanguages
                 .map((wordsOfLanguage) => wordsOfLanguage.words) // get words[] for every language
                 .reduce((arrays, array) => arrays.concat(array), []) // concat all words[]
@@ -389,9 +440,9 @@ export class DatabaseService {
                     }
 
                     return accTags;
-                }, [])
-        );
-    }    
+                }, []);
+        // );
+    }
 
     // Supposed to be executed only for translations
     private collectTagsForWord(languageIndex: number, wordId: number): string[] {

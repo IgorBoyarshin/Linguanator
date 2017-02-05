@@ -51,6 +51,10 @@ export class TestingComponent implements OnInit {
             this.db.getLanguageIndexByLabel('ger'),
             this.db.getLanguageIndexByLabel('eng')
         ];
+
+        if (this.db.tagsToUse.length == 0) {            
+            this.db.useAllTags();
+        }
         
         // Will contain only the two languages specified in the langPair, others will be undefined
         // Will contain only those words that have non-zero translations[] in the other language        

@@ -22,7 +22,7 @@
         </div>
     </section>    
 
-    <section class="horizontal input-word-panel" id="process-word-panel">
+    <section class="horizontal input-panel" id="process-word-panel">
         <input type="text" placeholder="Word" [(ngModel)]="inputWord"/>
         <input type="text" placeholder="Translations" [(ngModel)]="inputTranslations">
         <input type="text" placeholder="Tags" [(ngModel)]="inputTags">
@@ -62,7 +62,7 @@
     </section>
     
     <div class="" id="edit-word-view" *ngIf="idOfWordBeingEdited != undefined">
-        <section class="horizontal input-word-panel">
+        <section class="horizontal input-panel">
             <input type="text" placeholder="Word" [(ngModel)]="inputWord"/>
             <input type="text" placeholder="Translations" [(ngModel)]="inputTranslations">
             <input type="text" placeholder="Tags" [(ngModel)]="inputTags">
