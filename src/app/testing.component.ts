@@ -140,7 +140,7 @@ export class TestingComponent implements OnInit {
                 const amountOfAlmostCorrect = parsedAnswer.reduce((acc, curr) => acc += (curr == 1 ? 1 : 0), 0);
                 const amountOfWrong = parsedAnswer.length - amountOfCorrect - amountOfAlmostCorrect;
 
-                const scoreDelta = this.evaluateAnswer(amountOfWrong, amountOfAlmostCorrect + amountOfCorrect);
+                const scoreDelta: number = this.evaluateAnswer(amountOfWrong, amountOfAlmostCorrect + amountOfCorrect);
                 this.answerScore = scoreDelta;
 
                 if (amountOfCorrect + amountOfAlmostCorrect < amountOfWrong) {
@@ -164,14 +164,15 @@ export class TestingComponent implements OnInit {
             } else {
                 this.untilNextDump--;
             }
-            
+
             this.setup();
         }        
     }
 
     // Returns the score delta
-    private evaluateAnswer(wrong: number, correct: number): number {        
-        return Math.floor((Math.pow(correct, 3.0 / 4.0) - wrong) * 100.0) / 100.0;
+    private evaluateAnswer(wrong: number, correct: number): number {
+        return this.db.round(Math.pow(correct, 3.0 / 4.0) - wrong);
+        // return +(Math.floor((Math.pow(correct, 3.0 / 4.0) - wrong) * 100.0) / 100.0).toFixed(2);
     }
 
     // Returns an array
@@ -342,5 +343,5 @@ export class TestingComponent implements OnInit {
     private range(min: number = 0, max: number): number[] {
         let a: number[] = Array.apply(null, Array(max));
         return a.map((_, i) => i + min);        
-    }
+    }    
 }

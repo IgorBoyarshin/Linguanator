@@ -119,8 +119,8 @@ export class DatabaseService {
     }
 
     updateWordScore(languageIndex: number, wordIndex: number, scoreDelta: number): number {
-        const word: Word = this.wordsOfLanguages[languageIndex].words[wordIndex];
-        word.s += scoreDelta;
+        const word: Word = this.wordsOfLanguages[languageIndex].words[wordIndex];        
+        word.s = this.round(word.s + scoreDelta);
         if (word.s < 0) {
             word.s = 0.0;
         }
@@ -729,6 +729,10 @@ export class DatabaseService {
     private isDigit(char: string): boolean {
         const code = char.charCodeAt(0);
         return (code >= 48 && code <= 57);
+    }
+
+    round(x: number): number {
+        return +(Math.floor(x * 100.0) / 100.0).toFixed(2);
     }
 
     translateOldDatabase(): void {
