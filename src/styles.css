@@ -423,8 +423,11 @@ div#edit-word-view > section {
 table#tags-table {
     font-size: 1.1rem;
 }
-table#tags-table td:nth-child(even) {    
+table#tags-table tr>* {    
     padding-left: 1.0rem;
+}
+table#tags-table tr>*:nth-child(1) {    
+    padding-left: 0.5rem;
 }
 
 table#tags-table tr:nth-child(even) {

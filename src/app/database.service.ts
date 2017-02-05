@@ -31,6 +31,7 @@ export class DatabaseService {
     connections: Connection[][][]; // [lang from][lang to][index of connection]    
 
     registeredTags: string[] = [];
+    registeredTagsAmount: number[] = [];
     tagsToUse: string[] = [];
 
     constructor(private http: Http) {
@@ -435,9 +436,14 @@ export class DatabaseService {
                 .map(word => word.t) // retrieve tags from words
                 .reduce((allTags, tags) => allTags.concat(tags), []) // concat all tags[]
                 .reduce((accTags, tag) => { // keep unique
-                    if (!accTags.includes(tag)) {
+                    const indexOfTag: number = accTags.findIndex(t => t == tag);
+
+                    if (indexOfTag == undefined || indexOfTag == -1) {
                         accTags.push(tag);
+                        this.registeredTagsAmount.push(0);
                     }
+
+                    this.registeredTagsAmount[indexOfTag]++;
 
                     return accTags;
                 }, []);

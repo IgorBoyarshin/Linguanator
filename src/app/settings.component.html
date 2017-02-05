@@ -25,14 +25,16 @@
             <table id="tags-table">
                 <tr>
                     <th><a href="javascript:void(0)" (click)="checkAllTags()">Use all</a></th>
-                    <th>Tag</th>                    
+                    <th>Tag</th>
+                    <th>Amount</th>
                 </tr>
-                <tr *ngFor="let tag of this.db.registeredTags">
+                <tr *ngFor="let tag of this.db.registeredTags; let tagIndex = index">
                     <td style="text-align: center;">
                         <input type="checkbox" [checked]="this.db.tagsToUse.includes(tag)" 
                             (click)="checkTag(tag)">
                     </td>
                     <td>{{tag}}</td>
+                    <td>{{this.db.registeredTagsAmount[tagIndex]}}</td>
                     <!--<td style="text-align: center;">{{x.indices[0].length}}</td>
                     <td style="text-align: center;">{{x.indices[1].length}}</td>-->
                 </tr>
