@@ -17,8 +17,8 @@ export class DatabaseService {
     private settingsFileName = 'settings';
     private connectionsFileName = 'connections';
     private settingsUrl = this.urlToDatabase + this.settingsFileName + '.json';
-    private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
-    // private connectionsUrl = this.urlToDatabase + this.connectionsFileName + "_n" + '.json';
+    // private connectionsUrl = this.urlToDatabase + this.connectionsFileName + '.json';
+    private connectionsUrl = this.urlToDatabase + this.connectionsFileName + "_n" + '.json';
     private languageUrls: string[];
 
     private fileHeaders = new Headers({ 'Content-Type': 'application/json' });
@@ -51,8 +51,8 @@ export class DatabaseService {
                     .then(() => { // Fill the languageUrls[] using settings' data
                         this.languageUrls = this.settings.languages.registeredLanguages
                             .map(
-                            language => (this.urlToDatabase + language.label + '.json')
-                            // language => (this.urlToDatabase + language.label + "_n" + '.json')
+                            // language => (this.urlToDatabase + language.label + '.json')
+                            language => (this.urlToDatabase + language.label + "_n" + '.json')
                             );
                     }) // Now languageUrls[] is ready
                     .then(() => { // Based on it now load wordsOfLanguages[]

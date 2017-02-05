@@ -46,8 +46,12 @@
                 <th>@D</th> 
             </tr>
             <tr *ngFor="let word of words; let wordIndex = index">
-                <td><a href="">{{word.w}}</a></td>
-                <td><span *ngFor="let translation of translations[wordIndex]"><a href="">{{(translation ? translation.w : "")}}</a>; </span></td>
+                <td>{{word.w}}</td>
+                <td>
+                    <span *ngFor="let translation of translations[wordIndex]" class="translation-box">
+                        <a href="javascript:void(0)">{{(translation ? translation.w : "")}}</a>; 
+                    </span>
+                </td>
                 <td>{{word.s}}</td>
                 
                 <!--MB change to an array as with translations-->

@@ -84,6 +84,7 @@ export class DatabaseComponent implements OnInit {
 
         const amountOfDummyWordsToDisplayBeforeTheRestLoads = 20;
         this.words = words.slice(0, amountOfDummyWordsToDisplayBeforeTheRestLoads);
+        this.isTableLoading = true;
         setTimeout(() => {this.words = words; this.isTableLoading = false}, 10);
     }
 

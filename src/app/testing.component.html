@@ -4,7 +4,9 @@
             <span class="primary-text-dark" id="word-to-translate">{{currentWord ? currentWord.w : ""}}</span>
 
             <span class="secondary-text-2" id="lang-label">{{currentLanguageFrom ? currentLanguageFrom.label : ""}}</span>
-            {{currentWord ? currentWord.t : ""}}
+
+            <span class="secondary-text-1" id="tags-label">[{{currentWord ? currentWord.t : ""}}]</span>
+            
             <span class="secondary-text-1" id="word-score">{{currentWord ? currentWord.s : 0.0}}</span>
         </div>
                         
