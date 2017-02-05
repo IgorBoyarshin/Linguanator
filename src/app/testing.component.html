@@ -1,22 +1,27 @@
-<div class="wrapper testing vertical">
+<div class="wrapper testing vertical">        
     <section class="horizontal" id="boxes-container">
         <div class="box">
             <span class="primary-text-dark" id="word-to-translate">{{currentWord ? currentWord.w : ""}}</span>
 
-            <span class="secondary-text-2" id="lang-label">{{currentLanguage ? currentLanguage.label : ""}}</span>
-
+            <span class="secondary-text-2" id="lang-label">{{currentLanguageFrom ? currentLanguageFrom.label : ""}}</span>
+            {{currentWord ? currentWord.t : ""}}
             <span class="secondary-text-1" id="word-score">{{currentWord ? currentWord.s : 0.0}}</span>
         </div>
                         
         <textarea class="box primary-text-dark" id="user-answer" placeholder="Type answer here"
             [(ngModel)]="userInput" (keyup.enter)="submitAnswer()" [disabled]="currentState != stateUserInput"></textarea>
-    </section>
-
+    </section>    
+        
     <section class="" id="result-panel">        
         <div class="horizontal" 
             [ngClass]="{'correctAnswerColor': currentState == stateCorrectAnswer, 
                         'almostCorrectAnswerColor': currentState == stateAlmostCorrectAnswer,
-                        'wrongAnswerColor': currentState == stateWrongAnswer }">                        
+                        'wrongAnswerColor': currentState == stateWrongAnswer || !currentWord }">
+
+            <div *ngIf="!currentWord" id="error-notifier">
+                <p>NO WORDS MEET THE SPECIFIED CONDITION(LANG PAIR & TAGS)</p>
+            </div>
+            
             <div>
                 <p>
                     <span class="primary-text-light" id="correct-answer-text" *ngIf="currentState > stateUserInput">
@@ -32,18 +37,17 @@
             </div>
 
             <button class="button button-big green" (click)="submitAnswer()" 
-                [disabled]="userInput.trim().length == 0">{{currentState == stateUserInput ? "Submit" : "Next"}}</button>
-                <!--[disabled]="currentState == stateUserInput ? (userInput.length == 0) : false">{{currentState == stateUserInput ? "Submit" : "Next"}}</button>-->
+                [disabled]="userInput.trim().length == 0 || !currentWord">{{currentState == stateUserInput ? "Submit" : "Next"}}</button>                
         </div>
     </section>
 
     <section class="" id="flush-counter-panel">
         <div class="horizontal">
             <div>
-                <span class="primary-text-dark">Until next save: #25#</span>
+                <span class="primary-text-dark">Until next save: {{untilNextDump}}</span>
             </div>
 
-            <button class="button button-big green">Save</button>
+            <button class="button button-big green" (click)="dumpChanges()">Save</button>
         </div>
     </section>
 </div>

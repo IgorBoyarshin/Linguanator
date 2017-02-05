@@ -310,6 +310,12 @@ span#answer-score {
     margin-right: 1rem;
 }
 
+#error-notifier {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #eee;
+}
+
 
 
 /* DATABASE */

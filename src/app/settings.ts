@@ -11,6 +11,8 @@ export class Settings {
         defaultTag: string;
     };
 
+    dumpFrequency: number;
+
     // toJSON(): string {
     //     return JSON.stringify(this);
     // }

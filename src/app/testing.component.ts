@@ -37,6 +37,8 @@ export class TestingComponent implements OnInit {
     private sortedWordsIndices: number[][] = []; // [lang][indexOfWordIndex]
     private indexOfCurrentWordIndex: number;
 
+    private untilNextDump: number = 0;
+
     constructor(databaseService : DatabaseService) {
         this.db = databaseService;
     }
@@ -47,6 +49,8 @@ export class TestingComponent implements OnInit {
     }
 
     private onDatabaseLoad(): void {
+        this.untilNextDump = this.db.settings.dumpFrequency;
+
         this.languagePairToUse = [
             this.db.getLanguageIndexByLabel('ger'),
             this.db.getLanguageIndexByLabel('eng')
@@ -60,22 +64,52 @@ export class TestingComponent implements OnInit {
         // Will contain only those words that have non-zero translations[] in the other language        
         this.sortedWordsIndices = this.db.getLanguages()
             .map((lang, index) => index)
-            .map(langIndex => this.languagePairToUse.includes(langIndex) ? this.db.wordsOfLanguages[langIndex] : undefined)
-            .map(words => words ? words.words : [])
-            .map((words, index) => {
-                const langIndexFrom = index;
-                const langIndexTo = index == this.languagePairToUse[0] ? this.languagePairToUse[1] : this.languagePairToUse[0];                
-                return words.filter(word => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, word.id));
+            .map(langIndex => this.languagePairToUse.includes(langIndex) ? this.db.wordsOfLanguages[langIndex].words : [])
+            // .map(words => words ? words.words : [])
+            .map((words, languageIndex) => {
+                const langIndexFrom = languageIndex;
+                const langIndexTo = languageIndex == this.languagePairToUse[0] ? this.languagePairToUse[1] : this.languagePairToUse[0];
+                return this.range(0, words.length)
+                    // only words with needed tags
+                    .filter(index => {
+                        const tagsOfWord: string[] = words[index].t;
+
+                        // the word has at least one of the needed tags
+                        // TODO: mb swap arrays, bm it will be faster
+                        return this.db.tagsToUse.some(tag => tagsOfWord.includes(tag));
+                    })
+                    // the word has translation for given language pair
+                    .filter(index => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, words[index].id));
+
+                // return words                    
+                //     .filter(word => !this.db.isConnectionEmpty(langIndexFrom, langIndexTo, word.id));
             })
-            .map(words => this.range(0, words.length).sort((i1, i2) => words[i1].s - words[i2].s));
+            .map((indices, languageIndex) => {
+                const words: Word[] = this.db.wordsOfLanguages[languageIndex].words;
+                return indices.sort((i1, i2) => words[i1].s - words[i2].s);
+            });
+            // .map(words => this.range(0, words.length).sort((i1, i2) => words[i1].s - words[i2].s));
 
         
         this.setup();
     }
 
+    private dumpChanges(): void {
+        // this.setup();
+        this.db.saveProgress();
+    }
 
     private setup(): void {
         this.currentWord = this.generateWord();
+        if (this.currentWord == undefined) {
+            // generateWord() returns undefined when there are no words that meet 
+            // the required condition(given langs pair and given tagsToUse)
+
+            // So we can do nothing,just notify the user that he has to change the condition            
+            this.correctTranslations = [];
+            return;
+        }
+
         this.correctTranslations = this.getCorrectTranslations(
             this.currentLanguageIndexFrom, this.currentLanguageIndexTo, this.currentWord);
     }
@@ -124,6 +158,13 @@ export class TestingComponent implements OnInit {
         } else {
             this.currentState = this.stateUserInput;
             this.userInput = "";
+            
+            if (this.untilNextDump == 1) {
+                this.untilNextDump = this.db.settings.dumpFrequency;
+            } else {
+                this.untilNextDump--;
+            }
+            
             this.setup();
         }        
     }
@@ -264,7 +305,12 @@ export class TestingComponent implements OnInit {
         this.currentLanguageTo = this.db.getLanguage(this.currentLanguageIndexTo);
         
         const words: Word[] = this.db.wordsOfLanguages[this.currentLanguageIndexFrom].words;
-        const amountOfWords: number = this.sortedWordsIndices[this.currentLanguageIndexFrom].length; // <= than words[lang]
+        const amountOfWords: number = this.sortedWordsIndices[this.currentLanguageIndexFrom].length; // <=(LE) than words[lang].length
+        if (amountOfWords == 0) {
+            // It means that for given lang pair and given tagsToUse 
+            // there are no words that meet the condition
+            return undefined;
+        }
         this.indexOfCurrentWordIndex = Math.floor(this.generateExponential(amountOfWords));        
 
         return words[this.sortedWordsIndices[this.currentLanguageIndexFrom][this.indexOfCurrentWordIndex]];
