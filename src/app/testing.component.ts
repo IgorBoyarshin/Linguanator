@@ -123,14 +123,18 @@ export class TestingComponent implements OnInit {
             if (this.userInput.trim().length > 0) {
                 this.userInput = this.userInput.trim();
 
-                const parsedAnswer: number[] = 
+                const parsedAnswer: {wordIndex: number, presenceScore: number}[] = 
                     this.parseAnswer(this.userInput.split(';'), this.correctTranslations.map(word => word.w));
                                 
                 // console.log("Parsed: " + parsedAnswer + " of " + this.correctTranslations.length);
                 // console.log("Delta: " + scoreDelta);
 
-                const amountOfCorrect = parsedAnswer.reduce((acc, curr) => acc += (curr == 2 ? 1 : 0), 0);
-                const amountOfAlmostCorrect = parsedAnswer.reduce((acc, curr) => acc += (curr == 1 ? 1 : 0), 0);
+                const amountOfCorrect = parsedAnswer
+                    .map(obj => obj.presenceScore)
+                    .reduce((acc, curr) => acc += (curr == 2 ? 1 : 0), 0);
+                const amountOfAlmostCorrect = parsedAnswer
+                    .map(obj => obj.presenceScore)
+                    .reduce((acc, curr) => acc += (curr == 1 ? 1 : 0), 0);
                 const amountOfWrong = parsedAnswer.length - amountOfCorrect - amountOfAlmostCorrect;
 
                 const scoreDelta: number = this.evaluateAnswer(amountOfWrong, amountOfAlmostCorrect + amountOfCorrect);
@@ -146,7 +150,19 @@ export class TestingComponent implements OnInit {
                     }
                 }        
 
+                // Update the word itself
                 this.updateWordScore(this.indexOfCurrentWordIndex, scoreDelta);
+
+                // Update its translations that the user guessed correctly
+                const scoreDeltaForTranslation: number = scoreDelta / 2.0;
+                parsedAnswer
+                    .filter(obj => obj.presenceScore > 0) // only the correct ones get updated
+                    .map(obj => obj.wordIndex)                    
+                    .map(wordIndex => // wordIndex - index in the correctTranslations[]
+                        this.db.getWordIndexById(this.currentLanguageIndexTo, this.correctTranslations[wordIndex].id)
+                    )
+                    .forEach(wordIndex => this.db.updateWordScore(this.currentLanguageIndexTo, wordIndex, scoreDeltaForTranslation));
+                    
             }
         } else {
             this.currentState = this.stateUserInput;
@@ -171,19 +187,34 @@ export class TestingComponent implements OnInit {
 
     // Returns an array
     // For each word: 0 - not present, 1 - present with mistake, 2 - perfect match
-    private parseAnswer(userAnswer: string[], correctAnswer: string[]): number[] {
+    private parseAnswer(userAnswer: string[], correctAnswer: string[]): {wordIndex: number, presenceScore: number}[] {
         return userAnswer.map(answer => this.evaluatePresence(answer, correctAnswer));
     }
 
     // 0 - not present, 1 - present with mistake, 2 - perfect match
-    private evaluatePresence(str: string, array: string[]): number {
-        if (array.includes(str)) {
-            return 2;
-        } else if (array.some(element => this.isWithinError(str, element))) {
-            return 1;
-        } else {
-            return 0;
+    private evaluatePresence(str: string, array: string[]): {wordIndex: number, presenceScore: number} {
+
+        let index: number;
+
+        index = array.findIndex(value => value == str);
+        if (index >= 0) {
+            return {wordIndex: index, presenceScore: 2};
         }
+
+        index = array.findIndex(value => this.isWithinError(str, value));
+        if (index >= 0) {
+            return {wordIndex: index, presenceScore: 1};
+        }
+
+        return {wordIndex: undefined, presenceScore: 0};
+
+        // if (array.includes(str)) {
+        //     return 2;
+        // } else if (array.some(element => this.isWithinError(str, element))) {
+        //     return 1;
+        // } else {
+        //     return 0;
+        // }
     }
 
     private isWithinError(str1: string, str2: string): boolean {
