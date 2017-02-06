@@ -477,6 +477,7 @@ export class DatabaseService {
      */
     private updateRegisteredTags(): void {
         // this.registeredTags = Promise.resolve(
+        this.registeredTagsAmount = [];
         this.registeredTags =
             this.wordsOfLanguages
                 .map((wordsOfLanguage) => wordsOfLanguage.words) // get words[] for every language
@@ -484,11 +485,11 @@ export class DatabaseService {
                 .map(word => word.t) // retrieve tags from words
                 .reduce((allTags, tags) => allTags.concat(tags), []) // concat all tags[]
                 .reduce((accTags, tag) => { // keep unique
-                    const indexOfTag: number = accTags.findIndex(t => t == tag);
+                    let indexOfTag: number = accTags.findIndex(t => t == tag);
 
                     if (indexOfTag == undefined || indexOfTag == -1) {
-                        accTags.push(tag);
-                        this.registeredTagsAmount.push(0);
+                        accTags.push(tag);                        
+                        indexOfTag = this.registeredTagsAmount.push(0) - 1;
                     }
 
                     this.registeredTagsAmount[indexOfTag]++;
