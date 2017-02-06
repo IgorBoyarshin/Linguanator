@@ -68,38 +68,7 @@ export class OldDatabaseLoader {
         this.wordsEng.nextIdToUse = 0;
         this.wordsRus.nextIdToUse = 0;
 
-        db.inProgress.reverse().map(wordGer => {
-            const gerId: number = this.wordsGer.nextIdToUse++;
-            let newGerWord: Word = new Word(gerId, wordGer.w, 1.0 * wordGer.cc, [wordGer.t]);
-            this.wordsGer.words.push(newGerWord);
-
-            this.conn[0][1].push(new Connection(gerId, []));
-
-            wordGer.tr.forEach(engWordStr => {
-                let engWord: Word = this.wordsEng.words.find(word => word.w == engWordStr);
-                if (engWord) {
-                    // Word itself
-                    engWord.s = +(Math.floor((engWord.s + 1.0 * wordGer.cc) / 2.0 * 100.0) / 100.0).toFixed(2);
-                    if (!engWord.t.includes(wordGer.t)) {
-                        engWord.t.push(wordGer.t);
-                    }
-
-                    // connections
-                    this.conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
-                    this.conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
-                } else {
-                    const id: number = this.wordsEng.nextIdToUse++;
-                    engWord = new Word(id, engWordStr, +(Math.floor(1.0 * wordGer.cc * 0.75 * 100.0) / 100.0).toFixed(2), [wordGer.t]);
-                    this.wordsEng.words.push(engWord);
-
-                    // connections
-                    this.conn[1][0].push(new Connection(id, [gerId]));
-                    this.conn[0][1].find(connection => connection.from == gerId).to.push(id);
-                }
-            });
-        });
-
-        db.learned.reverse().map(wordGer => {
+        db.learned.map(wordGer => {
             const scoreToSet: number = 25.0;
             const gerId: number = this.wordsGer.nextIdToUse++;
             let newGerWord: Word = new Word(gerId, wordGer.w, scoreToSet, [wordGer.t]);
@@ -122,6 +91,37 @@ export class OldDatabaseLoader {
                 } else {
                     const id: number = this.wordsEng.nextIdToUse++;
                     engWord = new Word(id, engWordStr, scoreToSet - 5.0, [wordGer.t]);
+                    this.wordsEng.words.push(engWord);
+
+                    // connections
+                    this.conn[1][0].push(new Connection(id, [gerId]));
+                    this.conn[0][1].find(connection => connection.from == gerId).to.push(id);
+                }
+            });
+        });
+
+        db.inProgress.map(wordGer => {
+            const gerId: number = this.wordsGer.nextIdToUse++;
+            let newGerWord: Word = new Word(gerId, wordGer.w, 1.0 * wordGer.cc, [wordGer.t]);
+            this.wordsGer.words.push(newGerWord);
+
+            this.conn[0][1].push(new Connection(gerId, []));
+
+            wordGer.tr.forEach(engWordStr => {
+                let engWord: Word = this.wordsEng.words.find(word => word.w == engWordStr);
+                if (engWord) {
+                    // Word itself
+                    engWord.s = +(Math.floor((engWord.s + 1.0 * wordGer.cc) / 2.0 * 100.0) / 100.0).toFixed(2);
+                    if (!engWord.t.includes(wordGer.t)) {
+                        engWord.t.push(wordGer.t);
+                    }
+
+                    // connections
+                    this.conn[1][0].find(connection => connection.from == engWord.id).to.push(gerId);
+                    this.conn[0][1].find(connection => connection.from == gerId).to.push(engWord.id);
+                } else {
+                    const id: number = this.wordsEng.nextIdToUse++;
+                    engWord = new Word(id, engWordStr, +(Math.floor(1.0 * wordGer.cc * 0.75 * 100.0) / 100.0).toFixed(2), [wordGer.t]);
                     this.wordsEng.words.push(engWord);
 
                     // connections

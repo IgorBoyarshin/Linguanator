@@ -44,7 +44,7 @@ export class DatabaseService {
     currentTestingMode: number = this.testingModeTranslate;
 
     constructor(private http: Http) {
-
+        // this.translateOldDatabase();
     }
 
     /**

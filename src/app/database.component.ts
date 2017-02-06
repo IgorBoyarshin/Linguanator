@@ -57,14 +57,13 @@ export class DatabaseComponent implements OnInit {
         this.languageNameFrom = this.db.getLanguage(this.languageIndexFrom).name;
         this.languageNameTo = this.db.getLanguage(this.languageIndexTo).name;        
         
-        const wordsTo = this.db.wordsOfLanguages[this.languageIndexTo].words;
+        const wordsTo: Word[] = this.db.wordsOfLanguages[this.languageIndexTo].words;
 
         // Words appear only if they have non-empty translation in that language        
         this.words = [];
         this.translations = [];        
         let words: Word[] = [];
-        let emptyWords: Word[] = [];        
-        // const connections: Connection[] = this.db.connections[this.languageIndexFrom][this.languageIndexTo];
+        let emptyWords: Word[] = [];                
         this.db.wordsOfLanguages[this.languageIndexFrom].words
             .forEach((word, index) => {
                 const connection: Connection = this.db.getConnectionByFromId(
@@ -72,8 +71,8 @@ export class DatabaseComponent implements OnInit {
 
                 // Exists at all for this pair of langs, and is not empty
                 if (connection && connection.to.length > 0) {
-                    words.push(word);
-                    this.translations.push(connection.to.map(id => wordsTo.find(word => word.id == id)));
+                    words.unshift(word);
+                    this.translations.unshift(connection.to.map(id => wordsTo.find(word => word.id == id)));
                 } else {
                     emptyWords.push(word);                    
                 }              
@@ -87,48 +86,8 @@ export class DatabaseComponent implements OnInit {
         setTimeout(() => {this.words = words; this.isTableLoading = false}, 10);
     }
 
-
-
-    private showDB(): void {        
-        console.log("");
-        console.log("<<>> WORDS GER <<>>");
-        console.log(this.db.wordsOfLanguages[0].words.map(word => "" + word.id + " : " + word.w));
-
-        console.log("");
-        console.log("<<>> WORDS ENG <<>>");
-        console.log(this.db.wordsOfLanguages[1].words.map(word => "" + word.id + " : " + word.w));
-
-        console.log("");
-        console.log("<<>> WORDS RUS <<>>");
-        console.log(this.db.wordsOfLanguages[2].words.map(word => "" + word.id + " : " + word.w));
-
-        console.log("");
-        console.log("<<>> CONNECTIONS GER -> ENG <<>>");
-        console.log(this.db.connections[0][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));        
-
-        console.log("");
-        console.log("<<>> CONNECTIONS ENG -> GER <<>>");
-        console.log(this.db.connections[1][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));        
-
-        console.log("");
-        console.log("<<>> CONNECTIONS GER -> RUS <<>>");
-        console.log(this.db.connections[0][2].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
-
-        console.log("");
-        console.log("<<>> CONNECTIONS RUS -> GER <<>>");
-        console.log(this.db.connections[2][0].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
-
-        console.log("");
-        console.log("<<>> CONNECTIONS ENG -> RUS <<>>");
-        console.log(this.db.connections[1][2].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
-
-        console.log("");
-        console.log("<<>> CONNECTIONS RUS -> ENG <<>>");
-        console.log(this.db.connections[2][1].map(conn => "" + conn.from + " -> " + conn.to.join(", ")));
-    }
-
     private dumpChangesToDatabase(): void {
-        // this.db.saveProgress();
+        this.db.saveProgress();
     }  
 
     // Called by the button
