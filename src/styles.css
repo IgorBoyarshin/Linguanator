@@ -419,27 +419,37 @@ div#edit-word-view > section {
 /* SETTINGS */
 /* ============================================ */
 
-
-table#tags-table {
-    font-size: 1.1rem;
-}
-table#tags-table tr>* {    
-    padding-left: 1.0rem;
-}
-table#tags-table tr>*:nth-child(1) {    
-    padding-left: 0.5rem;
-}
-
-table#tags-table tr:nth-child(even) {
-    background: #ccc;
-}
-table#tags-table tr:nth-child(1) {
-    background: #ccc;
-}
-
 .settings > section {
     margin: 1.0rem;
 }
-#tags section {
+.settings section > section {
     margin-bottom: 0.7rem;
 }
+
+.settings table {
+    font-size: 1.1rem;
+}
+.settings table tr>* {    
+    padding-left: 1.0rem;
+}
+.settings table tr:nth-child(even) {
+    background: #ccc;
+}
+.settings table tr:nth-child(1) {
+    background: #ccc;
+}
+
+.settings table#languages-table td {
+    text-align: center;
+}
+.settings table#languages-table td:nth-child(1) {
+    text-align: left;
+}
+
+.settings table#tags-table tr>*:nth-child(1) {    
+    padding-left: 0.5rem;
+}
+
+
+
+

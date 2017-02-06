@@ -30,9 +30,18 @@ export class DatabaseService {
     wordsOfLanguages: WordsOfLanguage[]; // [lang]
     connections: Connection[][][]; // [lang from][lang to][index of connection]    
 
+
     registeredTags: string[] = [];
     registeredTagsAmount: number[] = [];
     tagsToUse: string[] = [];
+
+    testingLanguageFrom: number = 0;
+    testingLanguageTo: number = 1;
+    isTestingBothWays: boolean = true;
+
+    testingModeTranslate: number = 0;
+    testingModeCards: number = 1;
+    currentTestingMode: number = this.testingModeTranslate;
 
     constructor(private http: Http) {
 

@@ -1,17 +1,33 @@
 <div class="wrapper settings vertical">
 
     <section id="languages">
-        <h2>LANGUAGES</h2>
+        <h2>LANGUAGES</h2>        
 
-        <h3>Registered languages</h3>
-        <ul>
-            <li *ngFor="let language of registeredLanguages">
-                {{language.name}} :: {{language.label}}
-            </li>
-        </ul>        
-    </section>
+        <section id="select-languages">
+            <table id="languages-table">
+                <tr>                    
+                    <th>Language</th>
+                    <th>From</th>
+                    <th>To</th>                    
+                </tr>
+                <tr *ngFor="let language of registeredLanguages; let langIndex = index">                    
+                    <td>{{language.name}}</td>
+                    <td><input type="radio" name="radioLanguageFrom" (click)="selectLanguage('from', langIndex)"
+                         value="{{langIndex}}" [checked]="langIndex == this.db.testingLanguageFrom"></td>
+                    <td><input type="radio" name="radioLanguageTo" (click)="selectLanguage('to', langIndex)"
+                         value="{{langIndex}}" [checked]="langIndex == this.db.testingLanguageTo"></td>                    
+                </tr>
+            </table>
+        </section>      
+        
+        <section id="testing-mode">
+            <input type="checkbox" [(ngModel)]="this.db.isTestingBothWays"> Do testing both ways
+        </section>
+    </section>    
 
     <section class="vertical" id="tags">
+        <h2>TAGS</h2>
+
         <section id="add-tag">
             <section class="horizontal input-panel">
                 <input type="text" placeholder="Tag name" #inputTagName (keyup)="0">                

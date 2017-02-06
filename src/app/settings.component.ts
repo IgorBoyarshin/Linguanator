@@ -22,6 +22,25 @@ export class SettingsComponent implements OnInit {
             .then(() => this.onDatabaseLoad());
     }
 
+    selectLanguage(languageFromOrTo: string, languageIndex: number): void {
+        switch(languageFromOrTo) {
+            case 'from':
+                const previousIndexFrom: number = this.db.testingLanguageFrom;
+                this.db.testingLanguageFrom = languageIndex;
+                if (this.db.testingLanguageTo == this.db.testingLanguageFrom) {
+                    this.db.testingLanguageTo = previousIndexFrom;
+                }
+
+                break;
+            case 'to':
+                const previousIndexTo: number = this.db.testingLanguageTo;
+                this.db.testingLanguageTo = languageIndex;
+                if (this.db.testingLanguageFrom == this.db.testingLanguageTo) {
+                    this.db.testingLanguageFrom = previousIndexTo;
+                }
+        }
+    }
+
     private onDatabaseLoad(): void {        
         this.registeredLanguages = this.db.settings.languages.registeredLanguages;
 
