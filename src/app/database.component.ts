@@ -26,9 +26,9 @@ export class DatabaseComponent implements OnInit {
     private isOpenFrom: boolean = false;
     private isOpenTo: boolean = false; 
 
-    private inputWord: string;
-    private inputTranslations: string;
-    private inputTags: string;
+    private inputWord: string = "";
+    private inputTranslations: string = "";
+    private inputTags: string = "";
 
     private idOfWordBeingEdited: number = undefined;
 
@@ -87,7 +87,7 @@ export class DatabaseComponent implements OnInit {
     }
 
     private dumpChangesToDatabase(): void {
-        this.db.saveProgress();
+        // this.db.saveProgress();
     }  
 
     // Called by the button
@@ -110,8 +110,8 @@ export class DatabaseComponent implements OnInit {
 
     private submitWordEdit(): void {
         this.db.editWord(this.languageIndexFrom, this.languageIndexTo, this.idOfWordBeingEdited,
-            this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
-            this.inputTags.toLowerCase().split(";"));
+            this.inputWord.toLowerCase(), this.inputTranslations == "" ? [] :this.inputTranslations.toLowerCase().split(";"), 
+            this.inputTags == "" ? [] : this.inputTags.toLowerCase().split(";"));
 
         this.discardWordEdit();
         this.loadContent();
@@ -126,12 +126,12 @@ export class DatabaseComponent implements OnInit {
     }
 
     // Called by the button
-    private submitWord(): void {
+    private submitWord(): void {                
         // TODO
         // Assume everything is valid for now
         this.db.addWord(this.languageIndexFrom, this.languageIndexTo, 
-            this.inputWord.toLowerCase(), this.inputTranslations.toLowerCase().split(";"), 
-            this.inputTags.toLowerCase().split(";"));
+            this.inputWord.toLowerCase(), this.inputTranslations == "" ? [] :this.inputTranslations.toLowerCase().split(";"), 
+            this.inputTags == "" ? [] : this.inputTags.toLowerCase().split(";"));
 
         this.discardWordEdit();
         this.loadContent();
