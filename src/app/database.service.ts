@@ -221,6 +221,10 @@ export class DatabaseService {
             return this.wordsOfLanguages[languageIndexFrom].words[wordIndex].id;
         }
 
+        if (tags == undefined || tags.length == 0) {
+            tags = [this.settings.tags.defaultTag];
+        }
+
 
         if (wordAlreadyExists) { // then join || rewrite
             const word: Word = this.wordsOfLanguages[languageIndexFrom].words[wordIndex];
@@ -450,7 +454,9 @@ export class DatabaseService {
                             }
                         })
                     })
-            );        
+            );  
+
+        this.saveProgress();      
     }
 
     useAllTags(): void {
