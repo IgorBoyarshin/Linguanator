@@ -40,7 +40,7 @@ export class TestingComponent implements OnInit {
     private untilNextDump: number = 0;
 
     constructor(databaseService: DatabaseService) {
-        this.db = databaseService;
+        this.db = databaseService;      
     }
 
     ngOnInit(): void {
@@ -362,7 +362,7 @@ export class TestingComponent implements OnInit {
     private generateExponential(max: number): number {
         const intensity: number = 3.5 / max; // higher => more strict
 
-        return (max * Math.pow(Math.E, intensity * (this.generateRandomFloat(max) - max)) - Math.pow(Math.E, -1.0 * intensity * max));
+        return (max * Math.pow(Math.E, intensity * (this.generateRandomFloat(max) - max)) - max * Math.pow(Math.E, -1.0 * intensity * max));
     }
 
     private generateRandomInt(upperBound: number = 1.0): number {
@@ -373,6 +373,9 @@ export class TestingComponent implements OnInit {
         return (Math.random() * upperBound);
     }
 
+    /**
+     * Generater an array containing integers in range [min; max)
+     */
     private range(min: number = 0, max: number): number[] {
         let a: number[] = Array.apply(null, Array(max));
         return a.map((_, i) => i + min);
