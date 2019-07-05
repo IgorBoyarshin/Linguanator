@@ -1,0 +1,24 @@
+
+Words have ids because it is a pain in the ass to update the whole databse after a word removal(affecst connections).
+Languages are not. So they don't have ids.
+
+https://stackoverflow.com/questions/31582113/angular-2-set-focus-to-another-input
+
+
+##### For development:
+    (Using live reloading)
+
+    >> npm run serve
+
+    Starts a webpack's webpack-dev-server on 8080
+    Using style-loader and css-loader takes all css files, injects them into the
+    html(not the file, but in memory).
+
+
+##### For deployent:
+
+    Using npm, copy the styles.css file into the dist folder manually.
+
+    npm run build_f:prod
+
+    [BTW]: can remove the copying of the css file now(gets injected with import anyway)

@@ -2,8 +2,3 @@ dist/
 node_modules/
 typings/
 .vscode/
-database/
-database_bckp/
-
-NOTES.txt
-server.py

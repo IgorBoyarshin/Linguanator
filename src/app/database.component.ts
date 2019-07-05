@@ -35,7 +35,7 @@ export class DatabaseComponent implements OnInit {
     private isTableLoading: boolean = true;
 
     constructor(databaseService: DatabaseService) { 
-        this.db = databaseService;
+        this.db = databaseService;        
     }
 
     ngOnInit(): void {        
@@ -87,7 +87,7 @@ export class DatabaseComponent implements OnInit {
     }
 
     private dumpChangesToDatabase(): void {
-        // this.db.saveProgress();
+        this.db.saveProgress();
     }  
 
     // Called by the button
